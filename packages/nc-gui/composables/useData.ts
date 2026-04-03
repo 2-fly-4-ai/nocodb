@@ -32,6 +32,19 @@ export function useData(args: {
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
+  // Field agent dirty tracking: rebuild dependency map when columns change
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap } = useNocoAi()
+
+  watch(
+    () => meta.value?.columns,
+    (columns) => {
+      if (columns?.length) {
+        buildFieldAgentDependencyMap(columns as ColumnType[])
+      }
+    },
+    { immediate: true },
+  )
+
   const selectedAllRecords = computed({
     get() {
       return !!formattedData.value.length && formattedData.value.every((row: Row) => row.rowMeta.selected)
@@ -227,6 +240,11 @@ export function useData(args: {
       )
       await reloadAggregate?.trigger({ fields: [{ title: property }] })
 
+      // Track dirty rows for field agents that depend on this column
+      if (id) {
+        onFieldAgentCellUpdate(property, String(id))
+      }
+
       if (!undo) {
         addUndo({
           redo: {
@@ -379,6 +397,16 @@ export function useData(args: {
 
     await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray)
     await reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
+
+    // Track dirty rows for field agents that depend on updated columns
+    for (const row of rows) {
+      const pk = extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
+      if (pk) {
+        for (const prop of props) {
+          onFieldAgentCellUpdate(prop, String(pk))
+        }
+      }
+    }
 
     if (!undo) {
       addUndo({

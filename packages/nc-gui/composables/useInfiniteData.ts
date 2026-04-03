@@ -149,6 +149,19 @@ export function useInfiniteData(args: {
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
+  // Field agent dirty tracking: rebuild dependency map when columns change
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap } = useNocoAi()
+
+  watch(
+    () => meta.value?.columns,
+    (columns) => {
+      if (columns?.length) {
+        buildFieldAgentDependencyMap(columns as ColumnType[])
+      }
+    },
+    { immediate: true },
+  )
+
   const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
     ? {
         getEvaluatedRowMetaRowColorInfo: (_row: any) => ({}),
@@ -1650,6 +1663,11 @@ export function useInfiniteData(args: {
           [property]: toUpdate.row[property] ?? null,
         },
       )
+
+      // Track dirty rows for field agents that depend on this column
+      if (id) {
+        onFieldAgentCellUpdate(property, String(id))
+      }
 
       if (!undo) {
         addUndo({
