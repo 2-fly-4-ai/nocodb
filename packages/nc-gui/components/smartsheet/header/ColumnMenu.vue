@@ -74,7 +74,9 @@ const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByO
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
-const { showEEFeatures } = useEeConfig()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { showEEFeatures, showUpgradeToUseFieldAgent } = useEeConfig()
 
 const {
   generateRows,
@@ -588,6 +590,7 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 
 const runFieldAgentBulk = async (mode: 'all' | 'unmodified' | 'modified') => {
   if (!meta.value?.id || !column.value?.id || !column.value?.title) return
+  if (showUpgradeToUseFieldAgent()) return
 
   isFieldAgentRunning.value = true
   isOpen.value = false
@@ -605,7 +608,7 @@ const runFieldAgentBulk = async (mode: 'all' | 'unmodified' | 'modified') => {
       return
     }
 
-    message.toast(`AI agent started for "${column.value.title}"...`)
+    message.toast(t('msg.info.aiAgentStarted', { title: column.value.title }))
 
     // Subscribe to job progress via poller
     $poller.subscribe(
@@ -629,10 +632,10 @@ const runFieldAgentBulk = async (mode: 'all' | 'unmodified' | 'modified') => {
             clearFieldAgentDirty(column.value!.id!)
             reloadDataHook?.trigger()
 
-            message.toast(`AI agent processed ${processed} row${processed !== 1 ? 's' : ''}`)
+            message.toast(t('msg.info.aiAgentProcessed', { count: processed }))
           } else if (data.status === JobStatus.FAILED) {
             isFieldAgentRunning.value = false
-            message.error(data.data?.error?.message || 'Field agent job failed')
+            message.error(data.data?.error?.message || t('msg.error.fieldAgentJobFailed'))
           }
         }
       },
