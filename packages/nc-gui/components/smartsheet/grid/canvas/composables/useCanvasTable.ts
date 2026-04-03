@@ -245,7 +245,7 @@ export function useCanvasTable({
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring, blockFieldAgent } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
@@ -288,6 +288,8 @@ export function useCanvasTable({
     scriptEventBus,
     currentUser,
   )
+
+  actionManager.setFieldAgentBlockedCheck(() => blockFieldAgent.value)
 
   watch(
     () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
