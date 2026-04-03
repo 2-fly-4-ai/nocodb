@@ -1,6 +1,5 @@
-import { roundUpToPrecision, isFieldAgentCol } from 'nocodb-sdk'
+import { roundUpToPrecision } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
-import { AISelectCellRenderer } from './AISelect'
 
 export const DecimalCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -21,11 +20,6 @@ export const DecimalCellRenderer: CellRenderer = {
     }
 
     const text = displayValue?.toString() ?? ''
-
-    // Field Agent: render the "Run Agent" button when cell has no valid value
-    if (!isValidValue(text) && isFieldAgentCol(column)) {
-      return AISelectCellRenderer.render(ctx, props)
-    }
 
     if (!isValidValue(text)) {
       return {
@@ -55,11 +49,6 @@ export const DecimalCellRenderer: CellRenderer = {
     }
   },
   async handleClick(props) {
-    const { column, row, value } = props
-    // Field Agent: delegate click to AISelectCellRenderer for empty cells
-    if (isFieldAgentCol(column?.columnObj) && !isValidValue(value)) {
-      return AISelectCellRenderer.handleClick!(props)
-    }
     return false
   },
   async handleKeyDown(ctx) {

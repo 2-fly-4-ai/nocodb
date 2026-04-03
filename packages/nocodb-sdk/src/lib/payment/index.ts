@@ -102,6 +102,7 @@ export enum PlanFeatureTypes {
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
+  FEATURE_FIELD_AGENT = 'feature_field_agent',
 }
 
 export enum PlanTitles {
@@ -357,8 +358,12 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
+<<<<<<< HEAD
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
+=======
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use AI field agents.',
+>>>>>>> 0ea856f0d6 (feat(field-agent): server-side dirty tracking, bulk generation, payment gating & review fixes)
 };
 
 export const getUpgradeMessage = (

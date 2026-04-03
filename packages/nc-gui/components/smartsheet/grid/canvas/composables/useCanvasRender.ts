@@ -390,6 +390,8 @@ export function useCanvasRender({
       const iconConfig = (
         column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
       ) as any
+      const agentIconOffset = isAgentCol ? 9 : 0
+
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
           icon: column?.virtual ? iconConfig?.icon : iconConfig,
@@ -399,17 +401,26 @@ export function useCanvasRender({
           y: headerRowHeight.value / 2 - 7,
         })
 
+        if (isAgentCol) {
+          spriteLoader.renderIcon(ctx, {
+            icon: 'ncAutoAwesome',
+            size: 10,
+            color: headerColor,
+            x: xOffset + 23 - scrollLeft.value,
+            y: headerRowHeight.value / 2 - 5,
+          })
+        }
       }
 
       const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
-      const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
+      const availableTextWidth = width - (26 + agentIconOffset + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-      ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, headerRowHeight.value / 2)
+      ctx.fillText(truncatedText, xOffset + 26 + agentIconOffset - scrollLeft.value, headerRowHeight.value / 2)
       if (isRequired) {
         ctx.save()
         ctx.fillStyle = getColor(themeV4Colors.red['500'])
-        ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
+        ctx.fillText('*', xOffset + 28 + agentIconOffset - scrollLeft.value + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
         ctx.restore()
       }
 
@@ -651,6 +662,8 @@ export function useCanvasRender({
             ? renderVIcon(column.columnObj, column.relatedColObj)
             : renderIcon(column.columnObj, column.abstractType)
         ) as any
+        const agentIconOffset = isAgentCol ? 9 : 0
+
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
             icon: column?.virtual ? iconConfig?.icon : iconConfig,
@@ -660,14 +673,23 @@ export function useCanvasRender({
             y: headerRowHeight.value / 2 - 7,
           })
 
+          if (isAgentCol) {
+            spriteLoader.renderIcon(ctx, {
+              icon: 'ncAutoAwesome',
+              size: 10,
+              color: headerColor,
+              x: xOffset + 23,
+              y: headerRowHeight.value / 2 - 5,
+            })
+          }
         }
 
         const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
-        const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
+        const availableTextWidth = width - (26 + agentIconOffset + iconSpace + (isRequired ? 4 : 0))
 
         const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-        const x = xOffset + (column.uidt ? 26 : 10)
+        const x = xOffset + (column.uidt ? 26 + agentIconOffset : 10)
         const y = headerRowHeight.value / 2
 
         if (column.id === 'row_number') {
@@ -700,7 +722,7 @@ export function useCanvasRender({
           if (isRequired) {
             ctx.save()
             ctx.fillStyle = '#EF4444'
-            ctx.fillText('*', xOffset + 28 + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
+            ctx.fillText('*', xOffset + 28 + agentIconOffset + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
             ctx.restore()
           }
         }

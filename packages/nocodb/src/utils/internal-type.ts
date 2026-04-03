@@ -48,6 +48,7 @@ export type InternalGETResponseType = Promise<
       totalUsers: number;
       editorCount: number;
     }
+  | { count: number; rowIds: string[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

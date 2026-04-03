@@ -242,6 +242,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
+  const blockFieldAgent = computed(() => true)
+
+  const showUpgradeToUseFieldAgent = (..._args: any[]) => {}
+
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
@@ -385,5 +389,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockWorkspaceMembers,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeToUseSSO,
+    blockFieldAgent,
+    showUpgradeToUseFieldAgent,
   }
 })

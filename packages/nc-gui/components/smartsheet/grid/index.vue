@@ -81,6 +81,7 @@ const {
   clearGroupCache,
   toggleExpandAll,
   groupDataCache,
+  onAgentStatus,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -114,6 +115,8 @@ provide(RowHeightInj, rowHeight)
 const isPublic = inject(IsPublicInj, ref(false))
 
 provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+provide('onAgentStatus', onAgentStatus)
 
 const skipRowRemovalOnCancel = ref(false)
 
