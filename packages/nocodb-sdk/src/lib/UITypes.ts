@@ -10,6 +10,7 @@ import {
   LinksVersion,
   LongTextAiMetaProp,
   RelationTypes,
+  SelectFieldAgentMetaProp,
 } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 
@@ -386,6 +387,13 @@ export function isAIPromptCol(col: ColumnReqType | ColumnType) {
   return (
     col.uidt === UITypes.LongText &&
     parseProp((col as any)?.meta)?.[LongTextAiMetaProp]
+  );
+}
+
+export function isFieldAgentCol(col: ColumnReqType | ColumnType) {
+  return (
+    (col.uidt === UITypes.SingleSelect || col.uidt === UITypes.MultiSelect) &&
+    parseProp((col as any)?.meta)?.[SelectFieldAgentMetaProp]?.enabled === true
   );
 }
 

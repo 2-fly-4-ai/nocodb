@@ -290,6 +290,8 @@ export enum COLORING_TYPE {
 
 export const LongTextAiMetaProp = 'ai';
 
+export const SelectFieldAgentMetaProp = 'field_agent';
+
 export const NO_SCOPE = 'nc';
 
 export const NON_SEAT_ROLES = [
