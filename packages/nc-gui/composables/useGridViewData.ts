@@ -43,6 +43,8 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
+  const { onFieldAgentCellUpdate } = useNocoAi()
+
   const {
     cachedGroups,
     totalGroups,
@@ -517,6 +519,15 @@ export function useGridViewData(
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
+      // Track dirty rows for field agents that depend on updated columns
+      for (const { pk } of pksIndex) {
+        if (pk) {
+          for (const prop of props) {
+            onFieldAgentCellUpdate(prop, pk)
+          }
+        }
+      }
+
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
         const rowIndex = pksIndex.find((pkIndex) => pkIndex.pk === pk)?.rowIndex
@@ -673,6 +684,16 @@ export function useGridViewData(
           })
         }
       })
+
+      // Track dirty rows for field agents that depend on updated columns
+      for (const row of updateRows) {
+        const pk = getPk(row)
+        if (pk) {
+          for (const prop of props) {
+            onFieldAgentCellUpdate(prop, String(pk))
+          }
+        }
+      }
 
       dataCache.totalRows.value += insertedRows.length
 
