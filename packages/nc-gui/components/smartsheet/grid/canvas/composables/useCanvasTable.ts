@@ -240,7 +240,8 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
+  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows, canvasBulkAiGeneration } =
+    useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
@@ -297,6 +298,9 @@ export function useCanvasTable({
     },
     { immediate: true },
   )
+
+  // Expose bulk AI generation to toolbar via shared composable
+  canvasBulkAiGeneration.value = (columnId: string, rowIds: string[]) => actionManager.executeBulkAiGeneration(columnId, rowIds)
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -1499,6 +1503,7 @@ export function useCanvasTable({
   onBeforeUnmount(() => {
     actionManager.releaseEventListeners()
     eventBus.off(smartsheetEventHandler)
+    canvasBulkAiGeneration.value = null
   })
 
   // load metas and refresh canvas
