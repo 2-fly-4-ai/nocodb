@@ -27,6 +27,7 @@ export {
   numericUITypes,
   isAIPromptCol,
   isFieldAgentCol,
+  FIELD_AGENT_SUPPORTED_TYPES,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
