@@ -1,5 +1,13 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import {
+  AllAggregations,
+  type ColumnType,
+  PlanTitles,
+  type TableType,
+  UITypes,
+  isCreatedOrLastModifiedByCol,
+  isFieldAgentCol,
+} from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import {
   isBoxHovered,
@@ -355,7 +363,12 @@ export function useCanvasRender({
         }
       }
 
-      ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
+      const isAgentCol = isFieldAgentCol(colObj)
+      const headerColor = isAgentCol
+        ? getColor(themeV4Colors.purple['700'], themeV4Colors.purple['500'])
+        : getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
+
+      ctx.fillStyle = headerColor
 
       const rightPadding = 8
       let iconSpace = rightPadding
@@ -381,7 +394,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: column?.virtual ? iconConfig?.icon : iconConfig,
           size: 13,
-          color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
+          color: isAgentCol ? headerColor : (iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])),
           x: xOffset + 8 - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -627,7 +640,12 @@ export function useCanvasRender({
           }
         }
 
-        ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
+        const isAgentCol = isFieldAgentCol(colObj)
+        const headerColor = isAgentCol
+          ? getColor(themeV4Colors.purple['700'], themeV4Colors.purple['500'])
+          : getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
+
+        ctx.fillStyle = headerColor
         const iconConfig = (
           column?.virtual
             ? renderVIcon(column.columnObj, column.relatedColObj)
@@ -637,7 +655,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: column?.virtual ? iconConfig?.icon : iconConfig,
             size: 13,
-            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
+            color: isAgentCol ? headerColor : (iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])),
             x: xOffset + 8,
             y: headerRowHeight.value / 2 - 7,
           })
