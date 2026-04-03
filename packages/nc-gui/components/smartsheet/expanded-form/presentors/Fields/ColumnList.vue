@@ -5,6 +5,8 @@ import {
   PermissionEntity,
   PermissionKey,
   type TableType,
+  UITypes,
+  isFieldAgentCol,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -38,6 +40,8 @@ const { isMobileMode } = useGlobal()
 const { getMeta } = useMetas()
 
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
+
+const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
@@ -126,6 +130,48 @@ const revertLocalOnlyChanges = (col: string) => {
 }
 
 const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.readonly && !isAutoNumber(column)
+
+// Field Agent: determine if a column should show the "Run Agent" button.
+// Excludes SingleSelect/MultiSelect since they render their own button inside the cell editor.
+const isFieldAgentVisible = (col: ColumnType) => {
+  if (!isAiFeaturesEnabled.value || !aiIntegrationAvailable.value) return false
+  if (!isFieldAgentCol(col)) return false
+  if (isNew.value) return false
+  if (readOnly.value) return false
+  // SingleSelect and MultiSelect already have their own Run Agent button in their Editor.vue
+  if (col.uidt === UITypes.SingleSelect || col.uidt === UITypes.MultiSelect) return false
+  return true
+}
+
+const rowPk = computed(() => {
+  if (!_row.value?.row || !meta.value?.columns) return null
+  return extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
+})
+
+// Field Agent: track which columns are currently generating
+const fieldAgentGeneratingCols = ref<Set<string>>(new Set())
+
+const isFieldAgentGenerating = (colId: string) => {
+  return fieldAgentGeneratingCols.value.has(colId)
+}
+
+const runFieldAgent = async (col: ColumnType) => {
+  if (!meta.value?.id || !col.id || !rowPk.value) return
+
+  fieldAgentGeneratingCols.value.add(col.id)
+
+  try {
+    const res = await generateRows(meta.value.id, col.id, [rowPk.value])
+
+    if (res?.length && col.title) {
+      const value = res[0]?.[col.title]
+      _row.value.row[col.title] = value
+      changedColumns.value.add(col.title)
+    }
+  } finally {
+    fieldAgentGeneratingCols.value.delete(col.id!)
+  }
+}
 </script>
 
 <template>
@@ -211,39 +257,59 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           :disabled="showReadonlyColumnTooltip(col) || !showEditRestrictedColumnTooltip(col)"
         >
           <template #default="{ isAllowed }">
-            <SmartsheetDivDataCell
-              class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
-              :class="{
-                'w-full': props.forceVerticalMode,
-                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
-                  showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
-                '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
-              }"
-            >
-              <LazySmartsheetVirtualCell
-                v-if="isVirtualCol(col)"
-                v-model="_row.row[col.title]"
-                :column="col"
-                :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
-                :row="_row"
-                :is-allowed="isAllowed"
-              />
+            <div class="flex items-center gap-1 w-full">
+              <SmartsheetDivDataCell
+                class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
+                :class="{
+                  'w-full': props.forceVerticalMode,
+                  '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
+                    showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
+                  '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
+                }"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(col)"
+                  v-model="_row.row[col.title]"
+                  :column="col"
+                  :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
+                  :row="_row"
+                  :is-allowed="isAllowed"
+                />
 
-              <LazySmartsheetCell
-                v-else
-                v-model="_row.row[col.title]"
-                :active="true"
-                :column="col"
-                :edit-enabled="true"
-                :read-only="
-                  ncIsPlaywright()
-                    ? readOnly || !isAllowed || isSyncedColumn(col)
-                    : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
-                "
-                :is-allowed="isAllowed"
-                @update:model-value="changedColumns.add(col.title)"
-              />
-            </SmartsheetDivDataCell>
+                <LazySmartsheetCell
+                  v-else
+                  v-model="_row.row[col.title]"
+                  :active="true"
+                  :column="col"
+                  :edit-enabled="true"
+                  :read-only="
+                    ncIsPlaywright()
+                      ? readOnly || !isAllowed || isSyncedColumn(col)
+                      : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
+                  "
+                  :is-allowed="isAllowed"
+                  @update:model-value="changedColumns.add(col.title)"
+                />
+              </SmartsheetDivDataCell>
+
+              <!-- Field Agent: Run Agent button for non-select field agent columns -->
+              <NcTooltip v-if="isFieldAgentVisible(col) && isAllowed">
+                <template #title>Run agent</template>
+                <NcButton
+                  size="xs"
+                  type="text"
+                  theme="ai"
+                  class="!px-1 flex-none"
+                  :loading="isFieldAgentGenerating(col.id!)"
+                  :disabled="isFieldAgentGenerating(col.id!)"
+                  @click.stop="runFieldAgent(col)"
+                >
+                  <template #icon>
+                    <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
+                  </template>
+                </NcButton>
+              </NcTooltip>
+            </div>
           </template>
         </PermissionsTooltip>
       </NcTooltip>
