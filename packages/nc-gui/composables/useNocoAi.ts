@@ -380,7 +380,7 @@ export const useNocoAi = createSharedComposable(() => {
   ) => {
     try {
       const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
-      const baseId = meta?.baseId || activeProjectId.value
+      const baseId = meta?.baseId || activeProjectId?.value || workspaceStore.activeProjectId?.value
 
       if (!workspaceId || !baseId) return
 
@@ -425,7 +425,7 @@ export const useNocoAi = createSharedComposable(() => {
     meta?: { workspaceId?: string; baseId?: string },
   ) => {
     const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
-    const baseId = meta?.baseId || activeProjectId.value
+    const baseId = meta?.baseId || activeProjectId?.value || workspaceStore.activeProjectId?.value
 
     if (!workspaceId || !baseId) return
 
@@ -557,7 +557,7 @@ export const useNocoAi = createSharedComposable(() => {
     reactiveMapSet(dirtyCountLoading, colId, true)
 
     try {
-      const data = (await $api.internal.getOperation(workspaceStore.activeWorkspaceId, activeProjectId.value!, {
+      const data = (await $api.internal.getOperation(workspaceStore.activeWorkspaceId, activeProjectId?.value || workspaceStore.activeProjectId?.value || '', {
         operation: 'fieldAgentDirtyRows',
         tableId: modelId,
         columnId: colId,
