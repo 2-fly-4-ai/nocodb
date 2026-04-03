@@ -43,6 +43,7 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
+  // Field agent dirty tracking: mark rows stale after bulk paste/update
   const { onFieldAgentCellUpdate } = useNocoAi()
 
   const {

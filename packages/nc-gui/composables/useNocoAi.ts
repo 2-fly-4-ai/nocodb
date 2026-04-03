@@ -529,19 +529,23 @@ export const useNocoAi = createSharedComposable(() => {
     dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
   }
 
+  /** Number of dirty (stale) rows for a given field agent column. */
   const getFieldAgentDirtyCount = (colId: string): number => {
     return dirtyFieldAgentRows.value.get(colId)?.size ?? 0
   }
 
+  /** Row PKs that need re-generation for a given field agent column. */
   const getFieldAgentDirtyRowIds = (colId: string): string[] => {
     return [...(dirtyFieldAgentRows.value.get(colId) ?? [])]
   }
 
+  /** Clear dirty state for a single field agent column (e.g. after successful generation). */
   const clearFieldAgentDirty = (colId: string) => {
     dirtyFieldAgentRows.value.delete(colId)
     dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
   }
 
+  /** Reset all dirty state (e.g. on table switch). */
   const clearAllFieldAgentDirty = () => {
     dirtyFieldAgentRows.value = new Map()
   }
@@ -583,6 +587,5 @@ export const useNocoAi = createSharedComposable(() => {
     getFieldAgentDirtyRowIds,
     clearFieldAgentDirty,
     clearAllFieldAgentDirty,
-    dirtyFieldAgentRows,
   }
 })
