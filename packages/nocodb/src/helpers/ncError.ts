@@ -179,6 +179,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static contextAlreadySet(modelName: string): never {
+    return NcError._.contextAlreadySet(modelName);
+  }
+
   static systemMisconfigured(message: string, args?: NcErrorArgs): never {
     return NcError._.systemMisconfigured(message, args);
   }

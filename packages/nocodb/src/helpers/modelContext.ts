@@ -18,8 +18,8 @@ const NC_MODEL_CONTEXT = Symbol.for('nc_model_context');
 export function setModelContext<T>(instance: T, context: NcContext): T {
   if (instance && context) {
     if ((instance as any)[NC_MODEL_CONTEXT]) {
-      NcError.internalServerError(
-        `${(instance as any).constructor?.name ?? 'Model'} instance already has context — setModelContext called twice`,
+      NcError.get(context).contextAlreadySet(
+        (instance as any).constructor?.name ?? 'Model',
       );
     }
     Object.defineProperty(instance, NC_MODEL_CONTEXT, {
