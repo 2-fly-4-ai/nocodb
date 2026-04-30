@@ -239,11 +239,11 @@ export async function shouldCascadeLinkCleanup(
   if (relationType === 'mm') {
     const assocModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
     if (!assocModel) return false;
-    await assocModel.getColumns(mmContext);
+    await assocModel.getColumns();
     effectiveDr = undefined;
     for (const c of assocModel.columns) {
       if (!isLinksOrLTAR(c)) continue;
-      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(mmContext);
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>();
       if (
         opts?.type === 'bt' &&
         opts.fk_child_column_id === colOptions.fk_mm_child_column_id

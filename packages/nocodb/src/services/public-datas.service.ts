@@ -1010,7 +1010,7 @@ export class PublicDatasService {
     // Use refContext for cross-base links — the related table may belong
     // to a different base, so Source.get scoped to the original context
     // would return undefined.
-    const { refContext } = colOptions.getRelContext(context);
+    const { refContext } = colOptions.getRelContext();
 
     const source = await Source.get(refContext, model.source_id);
 
