@@ -418,44 +418,6 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m, context));
   }
 
-  public static async listWithInfo(
-    context: NcContext,
-    {
-      base_id,
-      db_alias,
-    }: {
-      base_id: string;
-      db_alias: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(context, CacheScope.MODEL, [
-      base_id,
-      db_alias,
-    ]);
-    let { list: modelList } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODELS,
-        {
-          xcCondition: modelOrViewXcCondition,
-        },
-      );
-
-      // parse meta of each model
-      for (const model of modelList) {
-        model.meta = parseMetaProp(model);
-      }
-
-      await NocoCache.setList(context, CacheScope.MODEL, [base_id], modelList);
-    }
-
-    return modelList.map((m) => this.castType(m, context));
-  }
-
   @NcCache({
     key: (args) => `${args[1]}:${args[2] ? 'd' : ''}`,
   })
