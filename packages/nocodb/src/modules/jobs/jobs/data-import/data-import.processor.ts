@@ -267,7 +267,7 @@ export class DataImportProcessor {
     const model = await Model.get(context, tableId);
     if (!model) NcError.tableNotFound(tableId);
     if (!tableName) tableName = model.title;
-    await model.getColumns(context);
+    await model.getColumns();
 
     // ── Build source-col → dest-col map
     const tableColumns = model.columns as any[];

@@ -122,9 +122,7 @@ export class BaseModelDelete {
       !args.permanentDelete &&
       !!deletedColumn &&
       isMeta &&
-      (await this.baseModel.model.isTrashEnabledForWorkspace(
-        this.baseModel.context,
-      ));
+      (await this.baseModel.model.isTrashEnabledForWorkspace());
 
     // Exclude already soft-deleted records from the delete query
     if (isSoftDelete) {
@@ -158,10 +156,10 @@ export class BaseModelDelete {
       // V1 BT: no FK cleanup (FK is on the deleted record itself),
       // but still collect parent IDs for LMT update
       if (colOptions.type === 'bt' && !isMMOrMMLike(column)) {
-        const btChildColumn = await colOptions.getChildColumn(childContext);
-        const btParentColumn = await colOptions.getParentColumn(parentContext);
-        const btParentTable = await btParentColumn.getModel(parentContext);
-        await btParentTable.getColumns(parentContext);
+        const btChildColumn = await colOptions.getChildColumn();
+        const btParentColumn = await colOptions.getParentColumn();
+        const btParentTable = await btParentColumn.getModel();
+        await btParentTable.getColumns();
         const btParentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: btParentTable,
           dbDriver: this.baseModel.dbDriver,
@@ -299,13 +297,9 @@ export class BaseModelDelete {
           {
             if (column.meta?.bt) {
               // BT-side: FK on the deleted record — no cleanup, but collect parent IDs for LMT
-              const ooParentColumn = await colOptions.getParentColumn(
-                parentContext,
-              );
-              const ooParentTable = await ooParentColumn.getModel(
-                parentContext,
-              );
-              await ooParentTable.getColumns(parentContext);
+              const ooParentColumn = await colOptions.getParentColumn();
+              const ooParentTable = await ooParentColumn.getModel();
+              await ooParentTable.getColumns();
               const ooParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 {
@@ -319,9 +313,7 @@ export class BaseModelDelete {
                 model: ooParentTable,
                 column,
                 getLinkedIds: async (ids) => {
-                  const ooChildCol = await colOptions.getChildColumn(
-                    childContext,
-                  );
+                  const ooChildCol = await colOptions.getChildColumn();
                   const rows = await this.baseModel.execAndParse(
                     this.baseModel
                       .dbDriver(this.baseModel.tnPath)
@@ -339,7 +331,7 @@ export class BaseModelDelete {
               break;
             }
             // HM-side: same cleanup + LMT as HM
-            const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+            const ooRelatedTable = await colOptions.getRelatedTable();
             if (ooRelatedTable.mm) {
               break;
             }
@@ -708,9 +700,7 @@ export class BaseModelDelete {
     cookie: NcRequest,
     isBulkAllOperation = false,
   ) {
-    const columns = await this.baseModel.model.getColumns(
-      this.baseModel.context,
-    );
+    const columns = await this.baseModel.model.getColumns();
     const source = await this.baseModel.getSource();
     const isMeta = source.isMeta();
 
@@ -721,12 +711,11 @@ export class BaseModelDelete {
       if (!isMeta || this.baseModel.model.primaryKeys.length > 1) break;
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.baseModel.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       const { refContext, mmContext, parentContext, childContext } =
-        await colOptions.getParentChildContext(this.baseModel.context);
+        await colOptions.getParentChildContext();
 
       // Skip V1 BT — deleted record is the child; parent's FK is unaffected
       // V2 BT uses junction tables (isMMOrMMLike=true), so junction rows need cleanup
@@ -734,12 +723,12 @@ export class BaseModelDelete {
         continue;
       }
 
-      const childColumn = await colOptions.getChildColumn(childContext);
-      const parentColumn = await colOptions.getParentColumn(parentContext);
-      const parentTable = await parentColumn.getModel(parentContext);
-      const childTable = await childColumn.getModel(childContext);
-      await childTable.getColumns(childContext);
-      await parentTable.getColumns(parentContext);
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
+      const parentTable = await parentColumn.getModel();
+      const childTable = await childColumn.getModel();
+      await childTable.getColumns();
+      await parentTable.getColumns();
 
       const childBaseModel = await Model.getBaseModelSQL(childContext, {
         model: childTable,
@@ -752,8 +741,8 @@ export class BaseModelDelete {
       switch (relationType) {
         case 'mm':
           {
-            const vChildCol = await colOptions.getMMChildColumn(mmContext);
-            const vTable = await colOptions.getMMModel(mmContext);
+            const vChildCol = await colOptions.getMMChildColumn();
+            const vTable = await colOptions.getMMModel();
             const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
               model: vTable,
               dbDriver: this.baseModel.dbDriver,
@@ -767,7 +756,7 @@ export class BaseModelDelete {
           break;
         case 'hm':
           {
-            const relatedTable = await colOptions.getRelatedTable(refContext);
+            const relatedTable = await colOptions.getRelatedTable();
             if (relatedTable.mm) {
               break;
             }
@@ -793,7 +782,7 @@ export class BaseModelDelete {
               break;
             }
             // HM-side: null FK on child
-            const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+            const ooRelatedTable = await colOptions.getRelatedTable();
             if (ooRelatedTable.mm) break;
 
             const ooChildColumn = await Column.get(childContext, {

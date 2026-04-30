@@ -160,7 +160,7 @@ export class ColumnUpdateCalendarRangeDependencyHandler
     for (const viewId of viewIds) {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
-      await view.getView(context, Noco.ncMeta);
+      await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(
         context,
         {

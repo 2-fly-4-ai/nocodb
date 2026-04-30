@@ -1028,13 +1028,12 @@ export class DataTableService {
       );
     }
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions =
+      await column.getColOptions<LinkToAnotherRecordColumn>();
 
-    const { refContext } = await colOptions.getParentChildContext(context);
-    const relatedModel = await colOptions.getRelatedTable(refContext);
-    await relatedModel.getColumns(refContext);
+    const { refContext } = await colOptions.getParentChildContext();
+    const relatedModel = await colOptions.getRelatedTable();
+    await relatedModel.getColumns();
 
     const displayValueColumn = relatedModel.displayValue;
     if (!displayValueColumn) {

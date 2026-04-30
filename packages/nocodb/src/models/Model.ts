@@ -102,7 +102,7 @@ export default class Model implements TableType {
     return false;
   }
 
-  async isTrashEnabledForWorkspace(_context: NcContext): Promise<boolean> {
+  async isTrashEnabledForWorkspace(): Promise<boolean> {
     return this.isTrashEnabled;
   }
 

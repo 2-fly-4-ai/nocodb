@@ -4167,7 +4167,7 @@ export class ColumnsService implements IColumnsService {
           workspace_id: refTable.fk_workspace_id,
           base_id: refTable.base_id,
         };
-        await refTable.getColumns(refContext, ncMeta);
+        await refTable.getColumns(ncMeta);
         NocoSocket.broadcastEvent(refContext, {
           event: EventType.META_EVENT,
           payload: {

@@ -2500,9 +2500,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_mm_parent_column_id,
               });
               const parentTable = await (
-                await colOptions.getParentColumn(parentContext)
-              ).getModel(parentContext);
-              await parentTable.getColumns(parentContext);
+                await colOptions.getParentColumn()
+              ).getModel();
+              await parentTable.getColumns();
               const parentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 { model: parentTable, dbDriver: this.dbDriver },
@@ -2564,7 +2564,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               });
 
               // Collect linked child IDs BEFORE FK nulling
-              await relatedTable.getColumns(refContext);
+              await relatedTable.getColumns();
               const inverseLinkCol = await extractCorrespondingLinkColumn(
                 this.context,
                 {
@@ -2606,16 +2606,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (column.meta?.bt) {
                 // BT-side: FK is on the deleted record — no cleanup needed
                 // Collect parent IDs for LMT from deleted record's FK
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
-                await btParentTable.getColumns(parentContext);
+                const btChildColumn = await colOptions.getChildColumn();
+                const btParentColumn = await colOptions.getParentColumn();
+                const btParentTable = await btParentColumn.getModel();
+                await btParentTable.getColumns();
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: btParentTable, dbDriver: this.dbDriver },
@@ -2648,9 +2642,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 break;
               }
               // HM-side: FK on child table needs nulling (same as HM)
-              const ooRelatedTable = await colOptions.getRelatedTable(
-                refContext,
-              );
+              const ooRelatedTable = await colOptions.getRelatedTable();
 
               if (ooRelatedTable.mm) {
                 break;
@@ -2667,7 +2659,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               });
 
               // Collect linked child ID BEFORE FK nulling
-              await ooRelatedTable.getColumns(refContext);
+              await ooRelatedTable.getColumns();
               const ooInverseLinkCol = await extractCorrespondingLinkColumn(
                 this.context,
                 {
@@ -2709,16 +2701,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case 'bt':
             {
               // Collect parent IDs for LMT from deleted record's FK
-              const btChildColumn = await colOptions.getChildColumn(
-                childContext,
-              );
-              const btParentColumn = await colOptions.getParentColumn(
-                parentContext,
-              );
-              const btParentTable = await btParentColumn.getModel(
-                parentContext,
-              );
-              await btParentTable.getColumns(parentContext);
+              const btChildColumn = await colOptions.getChildColumn();
+              const btParentColumn = await colOptions.getParentColumn();
+              const btParentTable = await btParentColumn.getModel();
+              await btParentTable.getColumns();
               const btParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 { model: btParentTable, dbDriver: this.dbDriver },
@@ -4528,9 +4514,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (!isLinksOrLTAR(column)) continue;
 
           const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+            await column.getColOptions<LinkToAnotherRecordColumn>();
           const { mmContext, refContext, childContext, parentContext } =
-            await colOptions.getParentChildContext(this.context);
+            await colOptions.getParentChildContext();
 
           const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
           const shouldCascadeHere = await shouldCascadeLinkCleanup(
@@ -4557,9 +4543,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   colId: colOptions.fk_mm_parent_column_id,
                 });
                 const parentTable = await (
-                  await colOptions.getParentColumn(parentContext)
-                ).getModel(parentContext);
-                await parentTable.getColumns(parentContext);
+                  await colOptions.getParentColumn()
+                ).getModel();
+                await parentTable.getColumns();
                 const parentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: parentTable, dbDriver: this.dbDriver },
@@ -4604,9 +4590,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (!shouldCascadeHere) break;
                 // skip if it's an mm table column
-                const relatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const relatedTable = await colOptions.getRelatedTable();
                 if (relatedTable.mm) {
                   break;
                 }
@@ -4615,7 +4599,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   colId: colOptions.fk_child_column_id,
                 });
 
-                await relatedTable.getColumns(refContext);
+                await relatedTable.getColumns();
                 const refBaseModel = await Model.getBaseModelSQL(refContext, {
                   model: relatedTable,
                   dbDriver: this.dbDriver,
@@ -4662,16 +4646,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (column.meta?.bt) {
                   // BT-side: collect parent IDs from deleted records' FKs
-                  const btChildColumn = await colOptions.getChildColumn(
-                    childContext,
-                  );
-                  const btParentColumn = await colOptions.getParentColumn(
-                    parentContext,
-                  );
-                  const btParentTable = await btParentColumn.getModel(
-                    parentContext,
-                  );
-                  await btParentTable.getColumns(parentContext);
+                  const btChildColumn = await colOptions.getChildColumn();
+                  const btParentColumn = await colOptions.getParentColumn();
+                  const btParentTable = await btParentColumn.getModel();
+                  await btParentTable.getColumns();
                   const btParentBaseModel = await Model.getBaseModelSQL(
                     parentContext,
                     { model: btParentTable, dbDriver: this.dbDriver },
@@ -4709,16 +4687,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   break;
                 }
                 // HM-side: same as HM
-                const ooRelatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const ooRelatedTable = await colOptions.getRelatedTable();
                 if (ooRelatedTable.mm) break;
 
                 const ooChildColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
                 });
 
-                await ooRelatedTable.getColumns(refContext);
+                await ooRelatedTable.getColumns();
                 const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
                   model: ooRelatedTable,
                   dbDriver: this.dbDriver,
@@ -4763,16 +4739,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             case 'bt':
               {
                 // Collect parent IDs from deleted records' FKs
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
-                await btParentTable.getColumns(parentContext);
+                const btChildColumn = await colOptions.getChildColumn();
+                const btParentColumn = await colOptions.getParentColumn();
+                const btParentTable = await btParentColumn.getModel();
+                await btParentTable.getColumns();
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: btParentTable, dbDriver: this.dbDriver },
@@ -8660,7 +8630,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { oldData: _oldData, columns } = args;
     const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
-    const modelColumns = columns || (await this.model.getColumns(this.context));
+    const modelColumns = columns || (await this.model.getColumns());
 
     const attachmentColumns = modelColumns.filter(
       (c) => c.uidt === UITypes.Attachment,
@@ -8766,18 +8736,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[] = [];
     if (!deletedIds.length) return result;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       try {
         const { mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -8785,10 +8754,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'bt' ||
           (relationType === 'oo' && column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const parentColumn = await colOptions.getParentColumn(parentContext);
-          const parentTable = await parentColumn.getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+          const childColumn = await colOptions.getChildColumn();
+          const parentColumn = await colOptions.getParentColumn();
+          const parentTable = await parentColumn.getModel();
+          await parentTable.getColumns();
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentTable,
             dbDriver: this.dbDriver,
@@ -8825,13 +8794,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'hm' ||
           (relationType === 'oo' && !column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const childTable = await childColumn.getModel(childContext);
+          const childColumn = await colOptions.getChildColumn();
+          const childTable = await childColumn.getModel();
 
           // Skip junction tables (system HM columns from MM point here)
           if (childTable.mm) continue;
 
-          await childTable.getColumns(childContext);
+          await childTable.getColumns();
           const childBaseModel = await Model.getBaseModelSQL(childContext, {
             model: childTable,
             dbDriver: this.dbDriver,
@@ -8864,13 +8833,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             });
           }
         } else if (relationType === 'mm') {
-          const vChildCol = await colOptions.getMMChildColumn(mmContext);
-          const vParentCol = await colOptions.getMMParentColumn(mmContext);
-          const vTable = await colOptions.getMMModel(mmContext);
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
           const parentTable = await (
-            await colOptions.getParentColumn(parentContext)
-          ).getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+            await colOptions.getParentColumn()
+          ).getModel();
+          await parentTable.getColumns();
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
             dbDriver: this.dbDriver,
@@ -8916,18 +8885,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any) {
     if (!deletedIds.length) return;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       try {
         const { mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -8938,10 +8906,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'bt' ||
           (relationType === 'oo' && column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const parentColumn = await colOptions.getParentColumn(parentContext);
-          const parentTable = await parentColumn.getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+          const childColumn = await colOptions.getChildColumn();
+          const parentColumn = await colOptions.getParentColumn();
+          const parentTable = await parentColumn.getModel();
+          await parentTable.getColumns();
 
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentTable,
@@ -8989,15 +8957,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'hm' ||
           (relationType === 'oo' && !column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const childTable = await childColumn.getModel(childContext);
+          const childColumn = await colOptions.getChildColumn();
+          const childTable = await childColumn.getModel();
 
           // Skip junction tables — they are internal MM tables, not user-facing.
           // System HM columns from V1 MM point to the junction table as child;
           // broadcasting / LMT updates on them fails (composite PK) and is meaningless.
           if (childTable.mm) continue;
 
-          await childTable.getColumns(childContext);
+          await childTable.getColumns();
 
           const childBaseModel = await Model.getBaseModelSQL(childContext, {
             model: childTable,
@@ -9038,13 +9006,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // ── V1 MM + ALL V2 (mm/om/mo/oo/bt) ───────────────────────────────
         // Junction-table-based. Query junction for linked record IDs.
         else if (relationType === 'mm') {
-          const vChildCol = await colOptions.getMMChildColumn(mmContext);
-          const vParentCol = await colOptions.getMMParentColumn(mmContext);
-          const vTable = await colOptions.getMMModel(mmContext);
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
           const parentTable = await (
-            await colOptions.getParentColumn(parentContext)
-          ).getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+            await colOptions.getParentColumn()
+          ).getModel();
+          await parentTable.getColumns();
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
@@ -9253,7 +9221,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
    */
   public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const deletedColumn = columns.find((c) => isDeletedCol(c));
     if (!deletedColumn) return null;
 

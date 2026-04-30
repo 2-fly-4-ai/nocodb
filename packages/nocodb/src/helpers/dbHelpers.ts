@@ -532,7 +532,7 @@ export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns(baseModel.context);
+  const columns = await baseModel.model.getColumns();
   const deletedColumn = columns.find((c) => isDeletedCol(c));
   if (!deletedColumn) return null;
 

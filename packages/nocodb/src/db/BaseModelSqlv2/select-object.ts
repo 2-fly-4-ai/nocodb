@@ -158,9 +158,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.LinkToAnotherRecord:
           break;
         case UITypes.Lookup: {
-          const lookupOpt = await column.getColOptions<LookupColumn>(
-            baseModel.context,
-          );
+          const lookupOpt = await column.getColOptions<LookupColumn>();
           if (lookupOpt?.error) {
             qb.select(
               baseModel.dbDriver.raw(`? as ??`, [
