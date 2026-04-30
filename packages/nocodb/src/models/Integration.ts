@@ -16,6 +16,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import { setModelContext } from '~/helpers/modelContext';
 import {
   parseMetaProp,
   prepareForDb,
@@ -537,7 +538,12 @@ export default class Integration implements IntegrationType {
 
     const sources = await qb;
 
-    return (this.sources = sources.map((src) => new Source(src)));
+    return (this.sources = sources.map((src) =>
+      setModelContext(new Source(src), {
+        workspace_id: src.fk_workspace_id,
+        base_id: src.base_id,
+      }),
+    ));
   }
 
   static async getCategoryDefault(

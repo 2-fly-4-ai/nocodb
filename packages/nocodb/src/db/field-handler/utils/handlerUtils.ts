@@ -16,6 +16,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
@@ -256,11 +257,11 @@ export async function nestedConditionJoin({
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
             childBaseModel,
-            new Filter({
+            setModelContext(new Filter({
               ...filter,
               fk_model_id: childModel.id,
               fk_column_id: childModel.displayValue?.id,
-            }),
+            }), context),
             aliasCount,
             relAlias,
             undefined,
@@ -273,11 +274,14 @@ export async function nestedConditionJoin({
         case RelationTypes.BELONGS_TO: {
           const filterOperationResult = await parseConditionV2(
             parentBaseModel,
-            new Filter({
-              ...filter,
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
-            }),
+            setModelContext(
+              new Filter({
+                ...filter,
+                fk_model_id: parentModel.id,
+                fk_column_id: parentModel?.displayValue?.id,
+              }),
+              context,
+            ),
             aliasCount,
             relAlias,
             undefined,
@@ -290,11 +294,14 @@ export async function nestedConditionJoin({
         case 'mm': {
           const filterOperationResult = await parseConditionV2(
             parentBaseModel,
-            new Filter({
-              ...filter,
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel.displayValue?.id,
-            }),
+            setModelContext(
+              new Filter({
+                ...filter,
+                fk_model_id: parentModel.id,
+                fk_column_id: parentModel.displayValue?.id,
+              }),
+              context,
+            ),
             aliasCount,
             relAlias,
             undefined,
@@ -309,11 +316,14 @@ export async function nestedConditionJoin({
   } else {
     const filterOperationResult = await parseConditionV2(
       baseModelSqlv2,
-      new Filter({
-        ...filter,
-        fk_model_id: (await lookupColumn.getModel()).id,
-        fk_column_id: lookupColumn?.id,
-      }),
+      setModelContext(
+        new Filter({
+          ...filter,
+          fk_model_id: (await lookupColumn.getModel()).id,
+          fk_column_id: lookupColumn?.id,
+        }),
+        context,
+      ),
       aliasCount,
       alias,
       undefined,

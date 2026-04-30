@@ -193,7 +193,12 @@ export default class LinkToAnotherRecordColumn {
     await table?.getViews();
     const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';
     if (!viewId) return;
-    return await View.get(this.context, viewId, false, ncMeta);
+    return await View.get(
+      table?.context ?? this.context,
+      viewId,
+      false,
+      ncMeta,
+    );
   }
 
   public static async read(

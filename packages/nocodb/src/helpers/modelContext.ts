@@ -1,5 +1,5 @@
-import { BadRequestV2 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/catchError';
 
 /**
  * Symbol used to store NcContext on model instances.
@@ -17,6 +17,11 @@ const NC_MODEL_CONTEXT = Symbol.for('nc_model_context');
  */
 export function setModelContext<T>(instance: T, context: NcContext): T {
   if (instance && context) {
+    if ((instance as any)[NC_MODEL_CONTEXT]) {
+      NcError.internalServerError(
+        `${(instance as any).constructor?.name ?? 'Model'} instance already has context — setModelContext called twice`,
+      );
+    }
     Object.defineProperty(instance, NC_MODEL_CONTEXT, {
       value: context,
       writable: false,
@@ -36,10 +41,9 @@ export function getModelContext(instance: any): NcContext | undefined {
 }
 
 /**
- * Throw a 400 BadRequest when a model instance is accessed without context.
- * Using BadRequest (not a plain Error) avoids 5xx alerts — missing context
- * is a programming error, not a server failure.
+ * Throw a 500 when a model instance is accessed without context.
+ * Missing context is always a programming error — the factory method forgot to call setModelContext.
  */
 export function throwMissingContext(modelName: string): never {
-  throw new BadRequestV2(`${modelName} instance accessed without context`);
+  NcError.internalServerError(`${modelName} instance accessed without context`);
 }

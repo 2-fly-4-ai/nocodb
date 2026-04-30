@@ -11,6 +11,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import Noco from '~/Noco';
@@ -50,10 +51,10 @@ export async function getColumnNameQuery({
     if (!valueColumn) {
       return { builder: NC_ERROR_SENTINEL };
     }
-    column = new Column({
+    column = setModelContext(new Column({
       ...valueColumn,
       id: column.id,
-    });
+    }), context);
   }
 
   let column_name_query: any = column.column_name;

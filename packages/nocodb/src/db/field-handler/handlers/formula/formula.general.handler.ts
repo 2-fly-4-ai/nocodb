@@ -9,6 +9,7 @@ import type {
 import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { Column, Filter } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 
 export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async filter(
@@ -65,20 +66,20 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {
-      const updatedColumn = new Column({
+      const updatedColumn = setModelContext(new Column({
         ...column,
         uidt: uidt,
-      } as ColumnType);
+      } as ColumnType), column.context);
       return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
       const formulaCol = await column.getColOptions<FormulaColumn>();
       const parsedTree = await formulaCol.getParsedTree();
 
       const setColumnTypeAndVerify = (type: UITypes) => {
-        const updatedColumn = new Column({
+        const updatedColumn = setModelContext(new Column({
           ...column,
           uidt: type,
-        } as ColumnType);
+        } as ColumnType), column.context);
         return options.fieldHandler.verifyFilter(
           filter,
           updatedColumn,

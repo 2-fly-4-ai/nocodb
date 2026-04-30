@@ -12,6 +12,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { setModelContext } from '~/helpers/modelContext';
 import { genPgAggregateQuery } from '~/db/aggregations/pg';
 import { genMysql2AggregatedQuery } from '~/db/aggregations/mysql2';
 import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
@@ -130,12 +131,12 @@ export default async function applyAggregation({
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
-    column = new Column({
+    column = setModelContext(new Column({
       ...(await column
         .getColOptions<BarcodeColumn | QrCodeColumn>()
         .then((col) => col.getValueColumn())),
       id: column.id,
-    });
+    }), context);
   }
 
   /* The following column types require special handling:

@@ -29,6 +29,7 @@ import {
   getColumnName,
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, GridViewColumn, Sort } from '~/models';
+import { setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
@@ -121,12 +122,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-        column = new Column({
+        column = setModelContext(new Column({
           ...(await column
             .getColOptions<BarcodeColumn | QrCodeColumn>()
             .then((col) => col.getValueColumn())),
           asId: column.id,
-        });
+        }), baseModel.context);
       }
 
       const alias = getAs(column);
@@ -540,12 +541,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         // if qrCode or Barcode replace it with value column nd keep the alias
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
-          column = new Column({
+          column = setModelContext(new Column({
             ...(await column
               .getColOptions<BarcodeColumn | QrCodeColumn>()
               .then((col) => col.getValueColumn())),
             asId: column.id,
-          });
+          }), baseModel.context);
 
         switch (column.uidt) {
           case UITypes.Attachment:
@@ -859,12 +860,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             // if qrCode or Barcode replace it with value column nd keep the alias
             if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-              column = new Column({
+              column = setModelContext(new Column({
                 ...(await column
                   .getColOptions<BarcodeColumn | QrCodeColumn>()
                   .then((col) => col.getValueColumn())),
                 asId: column.id,
-              });
+              }), baseModel.context);
             }
 
             groupByColumns[getAs(column)] = column;
@@ -1221,12 +1222,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             // if qrCode or Barcode replace it with value column nd keep the alias
             if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-              column = new Column({
+              column = setModelContext(new Column({
                 ...(await column
                   .getColOptions<BarcodeColumn | QrCodeColumn>()
                   .then((col) => col.getValueColumn())),
                 asId: column.id,
-              });
+              }), baseModel.context);
             }
 
             groupByColumns[getAs(column)] = column;
