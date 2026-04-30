@@ -373,7 +373,7 @@ export class DataTableService {
     },
   ) {
     const pkColumns = await model
-      .getColumns(context)
+      .getColumns()
       .then((cols) => cols.filter((col) => col.pk));
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
@@ -400,7 +400,7 @@ export class DataTableService {
       return;
     }
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     const keys = new Set();
 
@@ -464,11 +464,9 @@ export class DataTableService {
 
     const column = await this.getColumn(context, param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-    const relatedModel = await colOptions.getRelatedTable(context);
+    const relatedModel = await colOptions.getRelatedTable();
 
     const { ast, dependencyFields } = await getAst(context, {
       model: relatedModel,
@@ -753,14 +751,12 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-    const { refContext } = await colOptions.getParentChildContext(context);
+    const { refContext } = await colOptions.getParentChildContext();
 
-    const relatedModel = await colOptions.getRelatedTable(refContext);
-    await relatedModel.getColumns(refContext);
+    const relatedModel = await colOptions.getRelatedTable();
+    await relatedModel.getColumns();
 
     if (!colOptions.fk_mm_model_id) return;
 
@@ -1488,7 +1484,7 @@ export class DataTableService {
 
     const { refContext } = (
       relationColumn.colOptions as LinkToAnotherRecordColumn
-    ).getRelContext(context);
+    ).getRelContext();
 
     return this.dataList(refContext, {
       query: {

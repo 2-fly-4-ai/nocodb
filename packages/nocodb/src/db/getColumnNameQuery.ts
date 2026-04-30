@@ -41,13 +41,12 @@ export async function getColumnNameQuery({
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
     const colOpt = await column.getColOptions<BarcodeColumn | QrCodeColumn>(
-      context,
       ncMeta,
     );
     if (!colOpt || colOpt.error) {
       return { builder: NC_ERROR_SENTINEL };
     }
-    const valueColumn = await colOpt.getValueColumn(context, ncMeta);
+    const valueColumn = await colOpt.getValueColumn(ncMeta);
     if (!valueColumn) {
       return { builder: NC_ERROR_SENTINEL };
     }
@@ -80,10 +79,7 @@ export async function getColumnNameQuery({
   switch (column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup: {
-      const rollupOpt = (await column.getColOptions(
-        context,
-        ncMeta,
-      )) as RollupColumn;
+      const rollupOpt = (await column.getColOptions(ncMeta)) as RollupColumn;
       if (!rollupOpt || rollupOpt.error) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
@@ -95,10 +91,7 @@ export async function getColumnNameQuery({
     }
 
     case UITypes.Formula: {
-      const formula = await column.getColOptions<FormulaColumn>(
-        context,
-        ncMeta,
-      );
+      const formula = await column.getColOptions<FormulaColumn>();
       if (!formula.error) {
         column_name_query =
           await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
@@ -109,13 +102,10 @@ export async function getColumnNameQuery({
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup: {
       if (column.uidt === UITypes.Lookup) {
-        const lookupOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const lookupOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (lookupOpt?.error) break;
       }
-      const model = await column.getModel(context, ncMeta);
+      const model = await column.getModel(ncMeta);
       column_name_query = await generateLookupSelectQuery({
         baseModelSqlv2,
         column: column,

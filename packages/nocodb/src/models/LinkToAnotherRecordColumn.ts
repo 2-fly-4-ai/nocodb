@@ -9,6 +9,11 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class LinkToAnotherRecordColumn {
   protected _context: {
@@ -69,14 +74,20 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  public async getChildColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { childContext } = await this.getParentChildContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('LinkToAnotherRecordColumn');
+  }
+
+  public async getChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { childContext } = await this.getParentChildContext();
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -86,14 +97,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMChildColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getMMChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { mmContext } = this.getRelContext();
 
     return (this.mmChildColumn = await Column.get(
       mmContext,
@@ -104,14 +109,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getParentColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { parentContext } = await this.getParentChildContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { parentContext } = await this.getParentChildContext();
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -122,14 +121,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMParentColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    const { mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getMMParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    const { mmContext } = this.getRelContext();
     return (this.mmParentColumn = await Column.get(
       mmContext,
       {
@@ -139,11 +132,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getMMModel(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    const { mmContext } = this.getRelContext(context);
+  public async getMMModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    const { mmContext } = this.getRelContext();
     return (this.mmModel = await Model.getByIdOrName(
       mmContext,
       {
@@ -153,14 +143,8 @@ export default class LinkToAnotherRecordColumn {
     ));
   }
 
-  public async getRelatedTable(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    const { refContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+  public async getRelatedTable(ncMeta = Noco.ncMeta): Promise<Model> {
+    const { refContext } = this.getRelContext();
     return (this.relatedTable = await Model.getByIdOrName(
       refContext,
       {
@@ -205,15 +189,11 @@ export default class LinkToAnotherRecordColumn {
     return this.read(context, data.fk_column_id, ncMeta);
   }
 
-  async getChildView(
-    context: NcContext,
-    table: Model = undefined,
-    ncMeta = Noco.ncMeta,
-  ) {
-    await table?.getViews(context);
+  async getChildView(table: Model = undefined, ncMeta = Noco.ncMeta) {
+    await table?.getViews();
     const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';
     if (!viewId) return;
-    return await View.get(context, viewId, false, ncMeta);
+    return await View.get(this.context, viewId, false, ncMeta);
   }
 
   public static async read(
@@ -241,7 +221,10 @@ export default class LinkToAnotherRecordColumn {
         colData,
       );
     }
-    return colData ? new LinkToAnotherRecordColumn(colData) : null;
+    if (!colData) return null;
+    const instance = new LinkToAnotherRecordColumn(colData);
+    setModelContext(instance, context);
+    return instance;
   }
 
   static async update(
@@ -252,11 +235,12 @@ export default class LinkToAnotherRecordColumn {
     // placeholder method
   }
 
-  getRelContext(context: NcContext) {
+  getRelContext() {
     if (this._context) {
       return this._context;
     }
 
+    const context = this.context;
     let refContext = context;
     let mmContext = context;
 
@@ -291,19 +275,13 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  async getParentChildContext(
-    context: NcContext,
-    column?: Column,
-    ncMeta = Noco.ncMeta,
-  ) {
+  async getParentChildContext(column?: Column, ncMeta = Noco.ncMeta) {
     if (this._parentChildContext) {
       return this._parentChildContext;
     }
 
-    const { refContext, mmContext } = this.getRelContext({
-      ...context,
-      base_id: this.base_id,
-    });
+    const context = this.context;
+    const { refContext, mmContext } = this.getRelContext();
 
     let childContext = context;
     let parentContext = context;

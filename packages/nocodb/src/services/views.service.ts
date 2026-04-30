@@ -63,7 +63,7 @@ async function xcVisibilityMetaGet(
   const result = await models.reduce(async (_obj, model) => {
     const obj = await _obj;
 
-    const views = await model.getViews(context);
+    const views = await model.getViews();
     for (const view of views) {
       obj[view.id] = {
         ptn: model.table_name,
@@ -407,7 +407,7 @@ export class ViewsService {
       owner,
     });
 
-    await result.getView(context, ncMeta);
+    await result.getView(ncMeta);
 
     NocoSocket.broadcastEvent(
       context,

@@ -425,13 +425,7 @@ export default class Integration implements IntegrationType {
     const sources = await this.getSources(ncMeta, true);
 
     for (const source of sources) {
-      await source.delete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
+      await source.delete(ncMeta);
     }
 
     // unbind all buttons and long texts associated with this integration
@@ -473,13 +467,7 @@ export default class Integration implements IntegrationType {
     const sources = await this.getSources(ncMeta, true);
 
     for (const source of sources) {
-      await source.softDelete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
+      await source.softDelete(ncMeta);
     }
 
     // unbind all buttons and long texts associated with this integration
@@ -527,6 +515,7 @@ export default class Integration implements IntegrationType {
       .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
       .select(`${MetaTable.SOURCES}.base_id`)
+      .select(`${MetaTable.SOURCES}.fk_workspace_id`)
       .innerJoin(
         MetaTable.PROJECT,
         `${MetaTable.SOURCES}.base_id`,

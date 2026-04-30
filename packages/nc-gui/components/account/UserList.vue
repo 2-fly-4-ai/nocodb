@@ -19,10 +19,6 @@ const { copy } = useCopy()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
 
-const users = ref<UserType[]>([])
-
-const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
-
 const updateOrgRole = async (user: UserType, newRole: string) => {
   try {
     const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
@@ -40,6 +36,8 @@ const updateOrgRole = async (user: UserType, newRole: string) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
   return handleGetSortedData(users.value, sorts.value) as UserType[]
@@ -189,6 +187,8 @@ const orderBy = computed<Record<string, SordDirectionType>>({
     })
   },
 })
+
+const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
 
 const orgAllowedRoles = computed(() => {
   return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]

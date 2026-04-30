@@ -587,12 +587,7 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (
-    isColumnTypeOpen.value ||
-    isWebhookCreateModalOpen.value ||
-    isAiButtonConfigModalOpen.value ||
-    isConvertLinkV2ModalOpen.value
-  )
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value || isConvertLinkV2ModalOpen.value)
     return
 
   if (event.key === 'Escape') emit('cancel')

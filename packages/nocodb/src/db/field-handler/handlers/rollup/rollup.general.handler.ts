@@ -26,7 +26,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
         baseModelSqlv2,
         knex,
         alias,
-        columnOptions: (await column.getColOptions(context)) as RollupColumn,
+        columnOptions: (await column.getColOptions()) as RollupColumn,
       })
     ).builder;
     return parseConditionV2(

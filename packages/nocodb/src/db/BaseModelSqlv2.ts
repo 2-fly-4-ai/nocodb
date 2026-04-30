@@ -119,6 +119,7 @@ import {
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
+import { setModelContext } from '~/helpers/modelContext';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
   Audit,
@@ -360,7 +361,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         isTransient ||
         validateFormula ||
-        !haveFormulaColumn(await this.model.getColumns(this.context))
+        !haveFormulaColumn(await this.model.getColumns())
       )
         throw e;
       logger.log(e);
@@ -402,7 +403,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // load columns if not loaded already
-    await model.getCachedColumns(context);
+    await model.getCachedColumns();
 
     if (extractDisplayValueData) {
       return data ? data[model.displayValue.title] ?? null : '';
@@ -470,7 +471,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         extractOnlyPrimaries: true,
       });
 
-      await model.getCachedColumns(context);
+      await model.getCachedColumns();
 
       const pkMap = new Map<string, any>();
       for (const record of records) {
@@ -504,7 +505,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const pks = this.model.primaryKeys;
 
     if (!pks.length) return false;
@@ -544,15 +545,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     validateFormula = false,
   ): Promise<any> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ ...args, qb, validateFormula, columns });
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const sorts = extractSortsObject(this.context, rest?.sort, aliasColObjMap);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
@@ -659,7 +657,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       deletedOnly = false,
     } = options;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
@@ -680,10 +678,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     let sorts = extractSortsObject(
       this.context,
       rest?.sort,
@@ -877,16 +872,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
     const qb = this.dbDriver(this.tnPath);
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       where,
@@ -995,7 +987,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       groupByColumnName?: string;
     },
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const { where, ...rest } = this._getListArgs(args as any);
 
@@ -1014,10 +1006,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
@@ -1142,7 +1131,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const { where, aggregation } = this._getListArgs(args as any);
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       let viewColumns: any[];
       if (this.viewId) {
@@ -1187,10 +1176,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
       const qb = this.dbDriver(this.tnPath);
 
@@ -1365,7 +1351,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       let viewColumns: any[];
       if (this.viewId) {
@@ -1406,10 +1392,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
       const qb = this.dbDriver(this.tnPath);
 
@@ -1778,7 +1761,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     skipSort?: boolean;
     prioritizePvSort?: boolean;
   }) {
-    const childAliasColMap = await table.getAliasColObjMap(this.context);
+    const childAliasColMap = await table.getAliasColObjMap();
 
     if (!onlySort) {
       const { filters: filter } = extractFilterFromXwhere(
@@ -1810,7 +1793,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Highest priority: when searching in LTAR dropdowns, sort PV (display value) matches first
     if (where && !skipSort && prioritizePvSort) {
       if (!table.columns?.length) {
-        await table.getColumns(this.context);
+        await table.getColumns();
       }
       const pvColumn = table.columns?.find((col) => col.pv);
       // TODO: support virtual PV columns (Formula, Lookup, Rollup) by building
@@ -1865,13 +1848,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     // First priority View Sort
     if (view && !skipSort) {
-      const sortObj = await view.getSorts(this.context);
+      const sortObj = await view.getSorts();
       await sortV2(this, sortObj, qb);
     }
 
     if (!skipSort) {
       let orderColumnBy = '';
-      await table.getColumns(this.context);
+      await table.getColumns();
       const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
       const childTn = await this.getTnPath(table);
       if (orderCol) {
@@ -1904,7 +1887,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     validateFormula = false,
     aliasToColumnBuilder = {},
   ) {
-    const formula = await column.getColOptions<FormulaColumn>(this.context);
+    const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) NcError.get(this.context).formulaError(formula.error);
 
     const qb = await formulaQueryBuilderv2({
@@ -1933,16 +1916,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const proto: ResolverObj = {
       __columnAliases: {},
     };
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     await Promise.all(
       columns.map(async (column) => {
         switch (column.uidt) {
           case UITypes.Lookup:
             {
               // @ts-ignore
-              const colOptions: LookupColumn = await column.getColOptions(
-                this.context,
-              );
+              const colOptions: LookupColumn = await column.getColOptions();
               // Skip registering lookup alias if column has an error — sentinel value
               // is already selected in selectObject
               if (colOptions?.error) break;
@@ -1970,11 +1951,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             {
               const isMMLike = isMMOrMMLike(column);
               this._columns[column.title] = column;
-              const colOptions = (await column.getColOptions(
-                this.context,
-              )) as LinkToAnotherRecordColumn;
+              const colOptions =
+                (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
-              const { refContext } = colOptions.getRelContext(this.context);
+              const { refContext } = colOptions.getRelContext();
 
               if (colOptions?.type === 'hm' && !isMMLike) {
                 // DataLoader collects all .load(id) calls from the same microtick
@@ -2113,9 +2093,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 };
               } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
-                const colOptions = (await column.getColOptions(
-                  this.context,
-                )) as LinkToAnotherRecordColumn;
+                const colOptions =
+                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
                 const pCol = await Column.get(refContext, {
                   colId: colOptions.fk_parent_column_id,
@@ -2207,9 +2186,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 if (isBt) {
                   // @ts-ignore
-                  const colOptions = (await column.getColOptions(
-                    this.context,
-                  )) as LinkToAnotherRecordColumn;
+                  const colOptions =
+                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
                   const pCol = await Column.get(refContext, {
                     colId: colOptions.fk_parent_column_id,
                   });
@@ -2483,10 +2461,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+          await column.getColOptions<LinkToAnotherRecordColumn>();
 
         const { mmContext, refContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -2569,7 +2547,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!shouldCascadeHere) break;
 
               // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
+              const relatedTable = await colOptions.getRelatedTable();
 
               if (relatedTable.mm) {
                 break;
@@ -2817,20 +2795,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async hasLTARData(rowId, model: Model): Promise<any> {
     const res = [];
-    const LTARColumns = (await model.getColumns(this.context)).filter(
+    const LTARColumns = (await model.getColumns()).filter(
       (c) => c.uidt === UITypes.LinkToAnotherRecord,
     );
     let i = 0;
     for (const column of LTARColumns) {
-      const colOptions = (await column.getColOptions(
-        this.context,
-      )) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn(this.context);
-      const parentColumn = await colOptions.getParentColumn(this.context);
-      const childModel = await childColumn.getModel(this.context);
-      await childModel.getColumns(this.context);
-      const parentModel = await parentColumn.getModel(this.context);
-      await parentModel.getColumns(this.context);
+      const colOptions =
+        (await column.getColOptions()) as LinkToAnotherRecordColumn;
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
+      const childModel = await childColumn.getModel();
+      await childModel.getColumns();
+      const parentModel = await parentColumn.getModel();
+      await parentModel.getColumns();
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
         cnt = +(
@@ -2843,8 +2820,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           )
         ).cnt;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel(this.context);
-        const mmChildColumn = await colOptions.getMMChildColumn(this.context);
+        const mmModel = await colOptions.getMMModel();
+        const mmChildColumn = await colOptions.getMMChildColumn();
         cnt = +(
           await this.execAndParse(
             this.dbDriver(this.getTnPath(mmModel.table_name))
@@ -2879,7 +2856,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     beforeRowId: string;
     cookie?: { user?: any };
   }) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const row = await this.readByPk(
       rowId,
@@ -2906,10 +2883,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       const updateObj = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -2987,7 +2963,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async _wherePk(id, skipGetColumns = false, skipPkValidation = false) {
-    if (!skipGetColumns) await this.model.getColumns(this.context);
+    if (!skipGetColumns) await this.model.getColumns();
     return _wherePk(this.model.primaryKeys, id, skipPkValidation);
   }
 
@@ -3082,10 +3058,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const source = await this.getSource();
       await populatePk(this.context, this.model, data);
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       const insertObj = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -3439,7 +3414,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<Record<string, any>[]> {
     if (mergeValuesPerRecord.length === 0) return [];
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
 
     const mergeColNames = mergeColumns.map((col) => col.column_name);
 
@@ -3505,7 +3480,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     let trx;
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       let order = await this.getHighestOrderInTable();
 
@@ -3522,7 +3497,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             datas.map(async (d) => {
               await this.validate(d, columns);
               return this.model.mapAliasToColumn(
-                this.context,
                 d,
                 this.clientMeta,
                 this.dbDriver,
@@ -3870,7 +3844,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
   ) {
     const { allowSystemColumn } = params;
-    const cols = columns || (await this.model.getColumns(this.context));
+    const cols = columns || (await this.model.getColumns());
     const insertObj = {};
 
     for (let i = 0; i < cols.length; ++i) {
@@ -4068,7 +4042,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       // validate update data
       if (!raw) {
@@ -4082,7 +4056,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : await Promise.all(
             datas.map((d) =>
               this.model.mapAliasToColumn(
-                this.context,
                 d,
                 this.clientMeta,
                 this.dbDriver,
@@ -4297,10 +4270,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       let count = 0;
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       const updateData = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -4326,10 +4298,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         const { where } = this._getListArgs(args);
         const qb = this.dbDriver(this.tnPath);
-        const aliasColObjMap = await this.model.getAliasColObjMap(
-          this.context,
-          columns,
-        );
+        const aliasColObjMap = await this.model.getAliasColObjMap(columns);
         const { filters: filterObj } = extractFilterFromXwhere(
           this.context,
           where,
@@ -4425,14 +4394,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       isSingleRecordDeletion?: boolean;
     } = {},
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     let transaction;
     try {
       const deleteIds = await Promise.all(
         ids.map((d) =>
           this.model.mapAliasToColumn(
-            this.context,
             d,
             this.clientMeta,
             this.dbDriver,
@@ -5461,7 +5429,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const data: { [key: string]: any } = {};
 
     if (updateObj) {
-      updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
+      updateObj = await this.model.mapColumnToAlias(updateObj);
 
       for (const k of Object.keys(updateObj)) {
         oldData[k] = prevData[k];
@@ -5585,7 +5553,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn: false,
     },
   ): Promise<boolean> {
-    const cols = columns || (await this.model.getColumns(this.context));
+    const cols = columns || (await this.model.getColumns());
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < cols.length; ++i) {
       const column = this.model.columns[i];
@@ -5762,7 +5730,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const options = await column
-      .getColOptions<{ options: SelectOption[] }>(this.context)
+      .getColOptions<{ options: SelectOption[] }>()
       .then(
         (selectOptionsMeta) =>
           selectOptionsMeta?.options?.map((opt) => opt.title) || [],
@@ -5826,7 +5794,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const column = this.model.columnsById[colId];
 
     if (
@@ -5835,9 +5803,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     )
       NcError.get(this.context).fieldNotFound(colId);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      this.context,
-    );
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     // return if onlyUpdateAuditLogs is true and is not bt column
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -6051,8 +6017,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       queryQueue: this._queryQueue,
     });
 
-    await model.getColumns(context);
-    await refModel.getColumns(refContext);
+    await model.getColumns();
+    await refModel.getColumns();
 
     const missingDisplayValues = auditObjs.filter(
       (auditObj) => !auditObj.displayValue,
@@ -6181,7 +6147,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const column = this.model.columnsById[colId];
     if (
       !column ||
@@ -6303,7 +6269,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (column.uidt === UITypes.SingleSelect) {
       const colOptions = await column.getColOptions<{
         options: SelectOption[];
-      }>(this.context);
+      }>();
       groupingValues = new Set(
         (colOptions?.options ?? []).map((opt) => opt.title),
       );
@@ -6343,7 +6309,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   > {
     try {
       const { where, ...rest } = this._getListArgs(args as any);
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
       const column = columns?.find((col) => col.id === args.groupColumnId);
 
       if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
@@ -6365,10 +6331,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
       let sorts = extractSortsObject(this.context, args?.sort, aliasColObjMap);
       const { filters: filterObj } = extractFilterFromXwhere(
         this.context,
@@ -6522,7 +6485,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreViewFilterAndSort?: boolean;
     } & XcFilter,
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const column = columns?.find((col) => col.id === args.groupColumnId);
 
     if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
@@ -6542,10 +6505,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // todo: refactor and move to a common method (applyFilterAndSort)
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       args.where,
@@ -6613,11 +6573,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.selectObject({
       qb,
       columns: [
-        new Column({
-          ...column,
-          title: 'key',
-          id: 'key',
-        }),
+        setModelContext(
+          new Column({
+            ...column,
+            title: 'key',
+            id: 'key',
+          }),
+          this.context,
+        ),
       ],
     });
 
@@ -6690,7 +6653,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     let data = await this.execAndGetRows(query);
 
     if (!this.model?.columns) {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
     }
 
     // we need to post process lookup fields based on the looked up column instead of the lookup column
@@ -6858,7 +6821,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ) {
           const { refContext } = (
             col.colOptions as LinkToAnotherRecordColumn
-          ).getRelContext(this.context);
+          ).getRelContext();
           const columns = await Column.list(refContext, {
             fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
               .fk_related_model_id,
@@ -7321,17 +7284,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (column.uidt !== UITypes.Lookup) {
       return column;
     }
-    const colOptions = await column.getColOptions<LookupColumn>(context);
+    const colOptions = await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
-    const relationCol = await colOptions.getRelationColumn(context);
+    const relationCol = await colOptions.getRelationColumn();
     if (!relationCol) return { uidt: UITypes.SingleLineText };
     const relationColOpt = await (relationCol.colOptions ??
-      relationCol.getColOptions<LinkToAnotherRecordColumn>(context));
+      relationCol.getColOptions<LinkToAnotherRecordColumn>());
     if (!relationColOpt) return { uidt: UITypes.SingleLineText };
 
-    const { refContext } = relationColOpt.getRelContext(context);
+    const { refContext } = relationColOpt.getRelContext();
     return this.getNestedColumn(
-      await colOptions?.getLookupColumn(refContext),
+      await colOptions?.getLookupColumn(),
       refContext,
     );
   }
@@ -7451,7 +7414,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.clientType === ClientType.PG &&
         col.uidt === UITypes.Formula
       ) {
-        const colOptions = await col.getColOptions<FormulaColumn>(this.context);
+        const colOptions = await col.getColOptions<FormulaColumn>();
         const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
         if (parsedTree?.referencedColumn?.uidt === UITypes.Attachment) {
           formulaColumns.push(col);
@@ -7699,16 +7662,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     _args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
 
       const relColumn = this.model.columnsById[colId];
       if (!relColumn) {
         NcError.get(this.context).fieldNotFound(colId);
       }
-      const relColOptions = (await relColumn.getColOptions(
-        this.context,
-      )) as LinkToAnotherRecordColumn;
-      const relatedContext = await relColOptions.getRelContext(this.context);
+      const relColOptions =
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
+      const relatedContext = await relColOptions.getRelContext();
       const relatedBaseModel = await getBaseModelSqlFromModelId({
         modelId: relColOptions.fk_related_model_id,
         context: relatedContext.refContext,
@@ -7717,9 +7679,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         relColOptions.fk_child_column_id,
         relColOptions.fk_parent_column_id,
       ];
-      const relatedColumn = (
-        await relatedBaseModel.model.getColumns(relatedBaseModel.context)
-      ).find((col) => joinIds.includes(col.id));
+      const relatedColumn = (await relatedBaseModel.model.getColumns()).find(
+        (col) => joinIds.includes(col.id),
+      );
 
       const ooQb = relatedBaseModel
         .dbDriver(relatedBaseModel.getTnPath(relatedBaseModel.model.table_name))
@@ -7755,7 +7717,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
 
       const { where, sort } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -7780,24 +7742,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       const parentCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getParentColumn(this.context);
-      const parentTable = await parentCol.getModel(this.context);
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getParentColumn();
+      const parentTable = await parentCol.getModel();
       const chilCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getChildColumn(this.context);
-      const childTable = await chilCol.getModel(this.context);
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn
+      ).getChildColumn();
+      const childTable = await chilCol.getModel();
 
       const parentModel = await Model.getBaseModelSQL(this.context, {
         model: parentTable,
         dbDriver: this.dbDriver,
         queryQueue: this._queryQueue,
       });
-      await childTable.getColumns(this.context);
+      await childTable.getColumns();
 
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
@@ -7822,7 +7780,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const parent = await this.execAndParse(
         qb,
-        await parentTable.getColumns(this.context),
+        await parentTable.getColumns(),
         {
           first: true,
         },
@@ -7859,7 +7817,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // affected linked record gets the same LastModifiedTime.
     timestamp?: string;
   }) {
-    const columns = await model.getColumns(this.context);
+    const columns = await model.getColumns();
 
     const updateObject = {};
 
@@ -8657,7 +8615,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { oldData: _oldData, columns } = args;
     const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
-    const modelColumns = columns || (await this.model.getColumns(this.context));
+    const modelColumns = columns || (await this.model.getColumns());
 
     const attachmentColumns = modelColumns.filter(
       (c) => c.uidt === UITypes.Attachment,

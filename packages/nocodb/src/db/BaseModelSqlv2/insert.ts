@@ -21,7 +21,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   ) => {
     let insertObj: Record<string, any> | undefined;
     try {
-      const columns = await baseModel.model.getColumns(baseModel.context);
+      const columns = await baseModel.model.getColumns();
       const dbDataWrapper = dataWrapper(data);
       // exclude auto increment columns in body
       for (const col of columns) {
@@ -38,7 +38,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       // todo: filter based on view
       insertObj = await baseModel.model.mapAliasToColumn(
-        baseModel.context,
         data,
         baseModel.clientMeta,
         baseModel.dbDriver,
@@ -208,7 +207,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let columns: Column[];
 
       if (!raw) {
-        columns = await baseModel.model.getColumns(baseModel.context);
+        columns = await baseModel.model.getColumns();
 
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
@@ -268,7 +267,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         aiPkCol = baseModel.model.primaryKeys.find((pk) => pk.ai);
         agPkCol = baseModel.model.primaryKeys.find((pk) => pk.meta?.ag);
       } else {
-        columns = await baseModel.model.getColumns(baseModel.context);
+        columns = await baseModel.model.getColumns();
 
         const order = await baseModel.getHighestOrderInTable();
 

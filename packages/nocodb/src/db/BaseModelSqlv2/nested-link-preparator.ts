@@ -52,17 +52,15 @@ export class NestedLinkPreparator {
     const postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
-        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
-          baseModel.context,
-        );
+        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
 
-        const { refContext } = colOptions.getRelContext(baseModel.context);
+        const { refContext } = colOptions.getRelContext();
 
         const refModel = await Model.get(
           refContext,
           (colOptions as LinkToAnotherRecordColumn).fk_related_model_id,
         );
-        await refModel.getCachedColumns(refContext);
+        await refModel.getCachedColumns();
         const refModelPkCol = await refModel.primaryKey;
         const refChildCol = getRelatedLinksColumn(col, refModel);
 
@@ -98,17 +96,13 @@ export class NestedLinkPreparator {
                 nestedData = nestedData[0];
               }
 
-              const childCol = await colOptions.getChildColumn(
-                baseModel.context,
-              );
-              const parentCol = await colOptions.getParentColumn(
-                baseModel.context,
-              );
+              const childCol = await colOptions.getChildColumn();
+              const parentCol = await colOptions.getParentColumn();
               insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
                 nestedData,
                 parentCol.title,
               );
-              const refModel = await parentCol.getModel(baseModel.context);
+              const refModel = await parentCol.getModel();
 
               // Forward direction: inserted row → linked row
               postInsertAuditEntries.push({
@@ -149,11 +143,9 @@ export class NestedLinkPreparator {
 
               const isBt = col.meta?.bt;
 
-              const childCol = await colOptions.getChildColumn(
-                baseModel.context,
-              );
-              const childModel = await childCol.getModel(baseModel.context);
-              await childModel.getColumns(baseModel.context);
+              const childCol = await colOptions.getChildColumn();
+              const childModel = await childCol.getModel();
+              await childModel.getColumns();
 
               let refRowId;
 
@@ -176,23 +168,17 @@ export class NestedLinkPreparator {
                   return res;
                 });
 
-                const childCol = await colOptions.getChildColumn(
-                  baseModel.context,
-                );
-                const parentCol = await colOptions.getParentColumn(
-                  baseModel.context,
-                );
+                const childCol = await colOptions.getChildColumn();
+                const parentCol = await colOptions.getParentColumn();
 
                 insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
                   nestedData,
                   parentCol.title,
                 );
               } else {
-                const parentCol = await colOptions.getParentColumn(
-                  baseModel.context,
-                );
-                const parentModel = await parentCol.getModel(baseModel.context);
-                await parentModel.getColumns(baseModel.context);
+                const parentCol = await colOptions.getParentColumn();
+                const parentModel = await parentCol.getModel();
+                await parentModel.getColumns();
                 refRowId = nestedData[childModel.primaryKey.title];
 
                 postInsertOps.push(async (rowId) => {
@@ -252,16 +238,12 @@ export class NestedLinkPreparator {
           case RelationTypes.HAS_MANY:
             {
               if (!Array.isArray(nestedData)) continue;
-              const childCol = await colOptions.getChildColumn(
-                baseModel.context,
-              );
-              const parentCol = await colOptions.getParentColumn(
-                baseModel.context,
-              );
-              const childModel = await childCol.getModel(baseModel.context);
-              const parentModel = await parentCol.getModel(baseModel.context);
-              await childModel.getColumns(baseModel.context);
-              await parentModel.getColumns(baseModel.context);
+              const childCol = await colOptions.getChildColumn();
+              const parentCol = await colOptions.getParentColumn();
+              const childModel = await childCol.getModel();
+              const parentModel = await parentCol.getModel();
+              await childModel.getColumns();
+              await parentModel.getColumns();
 
               postInsertOps.push(async (rowId) => {
                 let refId = rowId;
@@ -330,13 +312,11 @@ export class NestedLinkPreparator {
             // Batch-delete existing junction rows for all children being linked
             postInsertOps.push(async (_rowId) => {
               const parentModel = await colOptions
-                .getParentColumn(baseModel.context)
-                .then((c) => c.getModel(baseModel.context));
-              await parentModel.getColumns(baseModel.context);
-              const parentMMCol = await colOptions.getMMParentColumn(
-                baseModel.context,
-              );
-              const mmModel = await colOptions.getMMModel(baseModel.context);
+                .getParentColumn()
+                .then((c) => c.getModel());
+              await parentModel.getColumns();
+              const parentMMCol = await colOptions.getMMParentColumn();
+              const mmModel = await colOptions.getMMModel();
               const targetIds = nestedData
                 .map((nd) =>
                   extractIdPropIfObjectOrReturn(
@@ -356,16 +336,12 @@ export class NestedLinkPreparator {
             // Insert all junction rows
             postInsertOps.push(async (rowId) => {
               const parentModel = await colOptions
-                .getParentColumn(baseModel.context)
-                .then((c) => c.getModel(baseModel.context));
-              await parentModel.getColumns(baseModel.context);
-              const parentMMCol = await colOptions.getMMParentColumn(
-                baseModel.context,
-              );
-              const childMMCol = await colOptions.getMMChildColumn(
-                baseModel.context,
-              );
-              const mmModel = await colOptions.getMMModel(baseModel.context);
+                .getParentColumn()
+                .then((c) => c.getModel());
+              await parentModel.getColumns();
+              const parentMMCol = await colOptions.getMMParentColumn();
+              const childMMCol = await colOptions.getMMChildColumn();
+              const mmModel = await colOptions.getMMModel();
 
               const rows = nestedData.map((r) => ({
                 [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
@@ -424,14 +400,12 @@ export class NestedLinkPreparator {
             if (colOptions.type === RelationTypes.ONE_TO_ONE) {
               const _nestedData = nestedData;
               postInsertOps.push(async (_rowId) => {
-                const parentMMCol = await colOptions.getMMParentColumn(
-                  baseModel.context,
-                );
+                const parentMMCol = await colOptions.getMMParentColumn();
                 const parentModel = await colOptions
-                  .getParentColumn(baseModel.context)
-                  .then((c) => c.getModel(baseModel.context));
-                await parentModel.getColumns(baseModel.context);
-                const mmModel = await colOptions.getMMModel(baseModel.context);
+                  .getParentColumn()
+                  .then((c) => c.getModel());
+                await parentModel.getColumns();
+                const mmModel = await colOptions.getMMModel();
                 const targetId = extractIdPropIfObjectOrReturn(
                   _nestedData,
                   parentModel.primaryKey.title,
@@ -447,10 +421,8 @@ export class NestedLinkPreparator {
             // MO cardinality: this child can only link to ONE parent
             // Remove existing junction rows for this child (no-op for new rows)
             postInsertOps.push(async (rowId) => {
-              const childMMCol = await colOptions.getMMChildColumn(
-                baseModel.context,
-              );
-              const mmModel = await colOptions.getMMModel(baseModel.context);
+              const childMMCol = await colOptions.getMMChildColumn();
+              const mmModel = await colOptions.getMMModel();
               return baseModel
                 .dbDriver(baseModel.getTnPath(mmModel.table_name))
                 .where(childMMCol.column_name, rowId)
@@ -461,16 +433,12 @@ export class NestedLinkPreparator {
             // Insert the new junction row
             postInsertOps.push(async (rowId) => {
               const parentModel = await colOptions
-                .getParentColumn(baseModel.context)
-                .then((c) => c.getModel(baseModel.context));
-              await parentModel.getColumns(baseModel.context);
-              const parentMMCol = await colOptions.getMMParentColumn(
-                baseModel.context,
-              );
-              const childMMCol = await colOptions.getMMChildColumn(
-                baseModel.context,
-              );
-              const mmModel = await colOptions.getMMModel(baseModel.context);
+                .getParentColumn()
+                .then((c) => c.getModel());
+              await parentModel.getColumns();
+              const parentMMCol = await colOptions.getMMParentColumn();
+              const childMMCol = await colOptions.getMMChildColumn();
+              const mmModel = await colOptions.getMMModel();
 
               return baseModel
                 .dbDriver(baseModel.getTnPath(mmModel.table_name))
@@ -517,16 +485,12 @@ export class NestedLinkPreparator {
             if (!Array.isArray(nestedData)) continue;
             postInsertOps.push(async (rowId) => {
               const parentModel = await colOptions
-                .getParentColumn(baseModel.context)
-                .then((c) => c.getModel(baseModel.context));
-              await parentModel.getColumns(baseModel.context);
-              const parentMMCol = await colOptions.getMMParentColumn(
-                baseModel.context,
-              );
-              const childMMCol = await colOptions.getMMChildColumn(
-                baseModel.context,
-              );
-              const mmModel = await colOptions.getMMModel(baseModel.context);
+                .getParentColumn()
+                .then((c) => c.getModel());
+              await parentModel.getColumns();
+              const parentMMCol = await colOptions.getMMParentColumn();
+              const childMMCol = await colOptions.getMMChildColumn();
+              const mmModel = await colOptions.getMMModel();
 
               const rows = nestedData.map((r) => ({
                 [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(

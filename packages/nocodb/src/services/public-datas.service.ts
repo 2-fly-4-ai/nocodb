@@ -103,20 +103,7 @@ export class PublicDatasService {
       }
     }
 
-    // Kanban views always group records by `fk_grp_col_id`, even when that
-    // column is hidden from the view. The frontend issues a grouped-data
-    // request keyed on that column id, so it must be accessible via the
-    // shared-view group endpoint regardless of `show`. The values are
-    // already visible in the UI as stack headers, so allowing access here
-    // doesn't leak any data that isn't otherwise rendered.
-    if (view.type === ViewTypes.KANBAN) {
-      const kanbanView = await KanbanView.get(context, view.id);
-      if (kanbanView?.fk_grp_col_id) {
-        groupByColumnIds.add(kanbanView.fk_grp_col_id);
-      }
-    }
-
-    await model.getColumns(context);
+    await model.getColumns();
 
     const visibleColumnTitles = new Set<string>();
     const visibleColumnNames = new Set<string>();
@@ -901,10 +888,10 @@ export class PublicDatasService {
       source,
     });
 
-    await view.getViewWithInfo(context);
-    await view.getColumns(context);
-    await view.getModelWithInfo(context);
-    await view.model.getColumns(context);
+    await view.getViewWithInfo();
+    await view.getColumns();
+    await view.getModelWithInfo();
+    await view.model.getColumns();
 
     const fields = (view.model.columns = view.columns
       .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
@@ -1010,17 +997,15 @@ export class PublicDatasService {
     }
 
     const column = await Column.get(context, { colId: param.columnId });
-    const currentModel = await view.getModel(context);
+    const currentModel = await view.getModel();
 
     if (column.fk_model_id !== currentModel.id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    await currentModel.getColumns(context);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    await currentModel.getColumns();
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-    const model = await colOptions.getRelatedTable(context);
+    const model = await colOptions.getRelatedTable();
 
     // Use refContext for cross-base links — the related table may belong
     // to a different base, so Source.get scoped to the original context
@@ -1132,7 +1117,7 @@ export class PublicDatasService {
     const column = await getColumnByIdOrName(
       context,
       param.columnId,
-      await view.getModel(context),
+      await view.getModel(),
     );
 
     if (column.fk_model_id !== view.fk_model_id)
@@ -1215,7 +1200,7 @@ export class PublicDatasService {
     const column = await getColumnByIdOrName(
       context,
       param.columnId,
-      await view.getModel(context),
+      await view.getModel(),
     );
 
     if (column.fk_model_id !== view.fk_model_id)

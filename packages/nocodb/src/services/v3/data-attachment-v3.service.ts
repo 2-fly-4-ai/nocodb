@@ -57,7 +57,7 @@ export class DataAttachmentV3Service {
       context: context,
       modelId: modelId,
     });
-    await baseModel.model.getColumns(context);
+    await baseModel.model.getColumns();
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
 
@@ -209,7 +209,7 @@ export class DataAttachmentV3Service {
       context: context,
       modelId: modelId,
     });
-    await baseModel.model.getColumns(context);
+    await baseModel.model.getColumns();
     const column = baseModel.model.columns.find((col) => col.id === columnId);
 
     // Check if column exists in model

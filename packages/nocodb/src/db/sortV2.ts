@@ -4,6 +4,7 @@ import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Base, BaseUser, Sort } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { setModelContext } from '~/helpers/modelContext';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -30,19 +31,16 @@ export default async function sortV2(
     if (_sort instanceof Sort) {
       sort = _sort;
     } else {
-      sort = new Sort(_sort);
+      sort = setModelContext(new Sort(_sort), context);
     }
-    const column = await getRefColumnIfAlias(
-      context,
-      await sort.getColumn(context),
-    );
+    const column = await getRefColumnIfAlias(context, await sort.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.get(context).fieldNotFound(sort.fk_column_id);
       }
       continue;
     }
-    const model = await column.getModel(context);
+    const model = await column.getModel();
 
     const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
 
@@ -64,9 +62,7 @@ export default async function sortV2(
               await genRollupSelectv2({
                 baseModelSqlv2,
                 knex,
-                columnOptions: (await column.getColOptions(
-                  context,
-                )) as RollupColumn,
+                columnOptions: (await column.getColOptions()) as RollupColumn,
                 alias,
               })
             ).builder;
@@ -80,7 +76,7 @@ export default async function sortV2(
         {
           const formulaOptions = await column.getColOptions<
             FormulaColumn | ButtonColumn
-          >(context);
+          >();
 
           if (
             column.uidt === UITypes.Formula ||

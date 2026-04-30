@@ -317,6 +317,7 @@ export class TablesService {
 
     const ncMeta = ncMetaParam ?? Noco.ncMeta;
 
+
     let result;
     let placeholderRefTables: Map<string, Model>;
     let table: Model;
@@ -329,11 +330,10 @@ export class TablesService {
         );
       }
 
-      await table.getColumns(context, ncMeta, undefined, true, true);
+      await table.getColumns(ncMeta, undefined, true, true);
 
       if (table.mm) {
         const columns = await table.getColumns(
-          context,
           ncMeta,
           undefined,
           true,
@@ -351,11 +351,7 @@ export class TablesService {
         const relColumns = await Promise.all(
           tables.map((t) => {
             return t
-              .getColumns({
-                ...context,
-                base_id: t.base_id,
-                workspace_id: t.fk_workspace_id,
-              })
+              .getColumns()
               .then((cols) => {
                 return cols.find((c) => {
                   return (
@@ -417,8 +413,8 @@ export class TablesService {
         const referredTables = await Promise.all(
           relationColumns.map(async (c) =>
             c
-              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
-              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .getColOptions<LinkToAnotherRecordColumn>(ncMeta)
+              .then((opt) => opt.getRelatedTable(ncMeta))
               .then((t) => t?.title),
           ),
         );
@@ -518,7 +514,7 @@ export class TablesService {
         });
       }
 
-      result = await table.delete(context, ncMeta);
+      result = await table.delete(ncMeta);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting table', e);
@@ -553,7 +549,7 @@ export class TablesService {
             workspace_id: refTable.fk_workspace_id,
             base_id: refTable.base_id,
           };
-          await refTable.getColumns(refContext, ncMeta);
+          await refTable.getColumns(ncMeta);
           NocoSocket.broadcastEvent(refContext, {
             event: EventType.META_EVENT,
             payload: {
@@ -606,7 +602,7 @@ export class TablesService {
     }
 
     if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
-      await table.getViews(context);
+      await table.getViews();
     } else {
       // todo: optimise
       const viewList = <View[]>(
@@ -654,7 +650,7 @@ export class TablesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews(context);
+      const views = await model.getViews();
       for (const view of views) {
         obj[view.id] = {
           ptn: model.table_name,

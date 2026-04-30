@@ -24,8 +24,8 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       alias,
       depth: aliasCount,
     } = options;
-    const model = await column.getModel(context);
-    const formula = await column.getColOptions<FormulaColumn>(context);
+    const model = await column.getModel();
+    const formula = await column.getColOptions<FormulaColumn>();
     const builder = (
       await formulaQueryBuilderv2({
         baseModel: baseModelSqlv2,
@@ -71,9 +71,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       } as ColumnType);
       return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
-      const formulaCol = await column.getColOptions<FormulaColumn>(
-        options.context,
-      );
+      const formulaCol = await column.getColOptions<FormulaColumn>();
       const parsedTree = await formulaCol.getParsedTree();
 
       const setColumnTypeAndVerify = (type: UITypes) => {

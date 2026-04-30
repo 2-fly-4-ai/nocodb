@@ -57,12 +57,10 @@ async function isMMRelationExist(
 ) {
   let isExist = false;
   const colChildOpt =
-    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>(context);
-  for (const col of await model.getColumns(context)) {
+    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
+  for (const col of await model.getColumns()) {
     if (isLTARType(col)) {
-      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
       if (
         colOpt &&
         isMMOrMMLike(col) &&
@@ -84,7 +82,7 @@ export async function extractAndGenerateManyToManyRelations(
   modelsArr: Array<Model>,
 ) {
   for (const assocModel of modelsArr) {
-    await assocModel.getColumns(context);
+    await assocModel.getColumns();
     // check if table is a Bridge table(or Associative Table) by checking
     // number of foreign keys and columns
 
@@ -92,9 +90,7 @@ export async function extractAndGenerateManyToManyRelations(
     const belongsToCols: Column<LinkToAnotherRecordColumn>[] = [];
     for (const col of assocModel.columns) {
       if (col.uidt == UITypes.LinkToAnotherRecord) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
         if (colOpt?.type === RelationTypes.BELONGS_TO) belongsToCols.push(col);
       }
     }
@@ -109,11 +105,11 @@ export async function extractAndGenerateManyToManyRelations(
         belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
       )
     ) {
-      const modelA = await belongsToCols[0].colOptions.getRelatedTable(context);
-      const modelB = await belongsToCols[1].colOptions.getRelatedTable(context);
+      const modelA = await belongsToCols[0].colOptions.getRelatedTable();
+      const modelB = await belongsToCols[1].colOptions.getRelatedTable();
 
-      await modelA.getColumns(context);
-      await modelB.getColumns(context);
+      await modelA.getColumns();
+      await modelB.getColumns();
 
       // check tableA already have the relation or not
       const isRelationAvailInA = await isMMRelationExist(
@@ -179,14 +175,12 @@ export async function extractAndGenerateManyToManyRelations(
       // mark has many relation associated with mm as system field in both table
       for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
         const colOpt = await btCol.colOptions;
-        const model = await colOpt.getRelatedTable(context);
+        const model = await colOpt.getRelatedTable();
 
-        for (const col of await model.getColumns(context)) {
+        for (const col of await model.getColumns()) {
           if (!isLinksOrLTAR(col.uidt)) continue;
 
-          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>(
-            context,
-          );
+          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
 
           if (
@@ -430,14 +424,14 @@ export async function populateMeta(
 
           const rel = column.hm || column.bt;
 
-          const rel_column_id = (
-            await models2?.[rel.tn]?.getColumns(context)
-          )?.find((c) => c.column_name === rel.cn)?.id;
+          const rel_column_id = (await models2?.[rel.tn]?.getColumns())?.find(
+            (c) => c.column_name === rel.cn,
+          )?.id;
 
           const tnId = models2?.[rel.tn]?.id;
 
           const ref_rel_column_id = (
-            await models2?.[rel.rtn]?.getColumns(context)
+            await models2?.[rel.rtn]?.getColumns()
           )?.find((c) => c.column_name === rel.rcn)?.id;
 
           const rtnId = models2?.[rel.rtn]?.id;
@@ -563,7 +557,7 @@ export async function populateMeta(
   });
 
   for (const model of models) {
-    const views = await model.getViews(context);
+    const views = await model.getViews();
     for (const view of views) {
       if (view.type === ViewTypes.GRID) {
         await View.fixPVColumnForView(context, view.id);
@@ -590,7 +584,7 @@ export async function populateRollupColumnAndHideLTAR(
     base_id: base.id,
     source_id: source.id,
   })) {
-    const columns = await model.getColumns(context);
+    const columns = await model.getColumns();
     const hmAndMmLTARColumns = columns.filter(
       (c) =>
         c.uidt === UITypes.LinkToAnotherRecord &&
@@ -598,21 +592,20 @@ export async function populateRollupColumnAndHideLTAR(
         !c.system,
     );
 
-    const views = await model.getViews(context);
+    const views = await model.getViews();
 
     for (const column of hmAndMmLTARColumns) {
       const relatedModel = await column
-        .getColOptions<LinkToAnotherRecordColumn>(context)
-        .then((colOpt) => colOpt.getRelatedTable(context));
-      await relatedModel.getColumns(context);
+        .getColOptions<LinkToAnotherRecordColumn>()
+        .then((colOpt) => colOpt.getRelatedTable());
+      await relatedModel.getColumns();
       const pkId =
-        relatedModel.primaryKey?.id ||
-        (await relatedModel.getColumns(context))[0]?.id;
+        relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
 
       await Column.insert<RollupColumn>(context, {
         uidt: UITypes.Links,
         title: getUniqueColumnAliasName(
-          await model.getColumns(context),
+          await model.getColumns(),
           `${relatedModel.title}`,
         ),
         fk_rollup_column_id: pkId,

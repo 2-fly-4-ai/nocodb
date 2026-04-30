@@ -58,7 +58,9 @@ describe('ColourHelper', () => {
     });
 
     it('handles value with leading/trailing whitespace', () => {
-      expect(helper.serializeValue('  #FF5733  ', baseParams)).toBe('#FF5733');
+      expect(helper.serializeValue('  #FF5733  ', baseParams)).toBe(
+        '#FF5733'
+      );
     });
 
     it('rejects 3-digit shorthand', () => {
@@ -68,9 +70,9 @@ describe('ColourHelper', () => {
     });
 
     it('rejects rgb() format', () => {
-      expect(() => helper.serializeValue('rgb(255,87,51)', baseParams)).toThrow(
-        SilentTypeConversionError
-      );
+      expect(() =>
+        helper.serializeValue('rgb(255,87,51)', baseParams)
+      ).toThrow(SilentTypeConversionError);
     });
   });
 

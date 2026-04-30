@@ -27,6 +27,11 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 const logger = new Logger('Base');
 
@@ -68,12 +73,26 @@ export default class Base implements BaseType {
   is_sandbox_master?: boolean; // Is this base a master base that has sandbox(es)?
   is_sandbox?: boolean; // Is this base a sandbox base?
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.id,
+      } as NcContext;
+    }
+    throwMissingContext('Base');
+  }
+
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
 
-  public static castType(base: Base): Base {
-    return base && new Base(base);
+  public static castType(base: Base, context?: NcContext): Base {
+    const instance = base && new Base(base);
+    if (instance && context) setModelContext(instance, context);
+    return instance;
   }
 
   public static async populateManagedAppInfo(_base: Base): Promise<void> {
@@ -296,7 +315,7 @@ export default class Base implements BaseType {
         baseData = null;
       }
     }
-    const base = this.castType(baseData);
+    const base = this.castType(baseData, context);
 
     if (base && base.managed_app_id) {
       await this.populateManagedAppInfo(base);
@@ -376,7 +395,7 @@ export default class Base implements BaseType {
       }
     }
     if (baseData) {
-      const base = this.castType(baseData);
+      const base = this.castType(baseData, context);
 
       if (base.managed_app_id) {
         await this.populateManagedAppInfo(base);
@@ -625,7 +644,7 @@ export default class Base implements BaseType {
       ncMeta,
     );
     for (const source of sources) {
-      await source.delete(context, ncMeta);
+      await source.delete(ncMeta);
     }
 
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);

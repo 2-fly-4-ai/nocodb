@@ -46,8 +46,13 @@ export const API_TOKEN_PERMISSION_GROUPS = {
     ApiTokenPermissionCategory.FIELDS,
     ApiTokenPermissionCategory.VIEWS,
   ],
-  Tools: [ApiTokenPermissionCategory.WEBHOOKS],
-  Admin: [ApiTokenPermissionCategory.BASE, ApiTokenPermissionCategory.USERS],
+  Tools: [
+    ApiTokenPermissionCategory.WEBHOOKS,
+  ],
+  Admin: [
+    ApiTokenPermissionCategory.BASE,
+    ApiTokenPermissionCategory.USERS,
+  ],
 } as const;
 
 export type ApiTokenPermissions = Partial<

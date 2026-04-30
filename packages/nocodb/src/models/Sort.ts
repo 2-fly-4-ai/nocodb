@@ -11,6 +11,11 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 import View from '~/models/View';
 
 export default class Sort {
@@ -23,6 +28,18 @@ export default class Sort {
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('Sort');
+  }
 
   constructor(data: Partial<SortType>) {
     Object.assign(this, data);
@@ -163,10 +180,10 @@ export default class Sort {
     });
   }
 
-  public getColumn(context: NcContext, ncMeta = Noco.ncMeta): Promise<Column> {
+  public getColumn(ncMeta = Noco.ncMeta): Promise<Column> {
     if (!this.fk_column_id) return null;
     return Column.get(
-      context,
+      this.context,
       {
         colId: this.fk_column_id,
       },
@@ -204,7 +221,7 @@ export default class Sort {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
-    return sortList.map((s) => new Sort(s));
+    return sortList.map((s) => setModelContext(new Sort(s), context));
   }
 
   public static async update(
@@ -294,15 +311,12 @@ export default class Sort {
       );
       await NocoCache.set(context, `${CacheScope.SORT}:${id}`, sortData);
     }
-    return sortData && new Sort(sortData);
+    return sortData && setModelContext(new Sort(sortData), context);
   }
 
-  public async getModel(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
+  public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
     return Model.getByIdOrName(
-      context,
+      this.context,
       {
         id: this.fk_view_id,
       },

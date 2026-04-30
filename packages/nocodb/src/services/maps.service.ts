@@ -112,7 +112,7 @@ export class MapsService {
       owner,
     });
 
-    await view.getView(context);
+    await view.getView();
 
     return view;
   }

@@ -134,7 +134,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
-            >(context);
+            >();
             const { builder } = await _formulaQueryBuilder({
               baseModelSqlv2,
               _tree: formulOption.formula,
@@ -182,7 +182,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
-            columnOptions: (await col.getColOptions(context)) as RollupColumn,
+            columnOptions: (await col.getColOptions()) as RollupColumn,
             alias: tableAlias,
             parentColumns,
           });
@@ -321,8 +321,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.QrCode:
       case UITypes.Barcode: {
         const referencedColumn = await (
-          await col.getColOptions<BarcodeColumn | QrCodeColumn>(context)
-        ).getValueColumn(context);
+          await col.getColOptions<BarcodeColumn | QrCodeColumn>()
+        ).getValueColumn();
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
             builder: knex.raw(`??.??`, [
@@ -472,7 +472,7 @@ export default async function formulaQueryBuilderv2({
 
   const context = baseModelSqlv2.context;
 
-  columns = columns ?? (await model.getColumns(context));
+  columns = columns ?? (await model.getColumns());
 
   const formulaContext = {
     count: 0,
@@ -504,7 +504,7 @@ export default async function formulaQueryBuilderv2({
       parsedTree:
         parsedTree ??
         (await column
-          ?.getColOptions<FormulaColumn | ButtonColumn>(context)
+          ?.getColOptions<FormulaColumn | ButtonColumn>()
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
       parentColumns,
@@ -553,9 +553,9 @@ export default async function formulaQueryBuilderv2({
 
     // if column is provided, i.e. formula has been created
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn | ButtonColumn>(
-        context,
-      );
+      const formula = await column.getColOptions<
+        FormulaColumn | ButtonColumn
+      >();
       // clean the previous formula error if the formula works this time
       if (formula.error) {
         if (formula.constructor.name === 'ButtonColumn') {

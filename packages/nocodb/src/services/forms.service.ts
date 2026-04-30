@@ -135,7 +135,7 @@ export class FormsService {
       context,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     NocoSocket.broadcastEvent(
       context,
@@ -205,7 +205,7 @@ export class FormsService {
       owner,
     });
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo();
 
     NocoSocket.broadcastEvent(
       context,

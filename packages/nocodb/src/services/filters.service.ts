@@ -92,7 +92,7 @@ export class FiltersService {
       NcError.badRequest('Filter not found');
     }
 
-    const parentData = await filter.extractRelatedParentMetas(context);
+    const parentData = await filter.extractRelatedParentMetas();
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
@@ -286,7 +286,7 @@ export class FiltersService {
       ncMeta,
     );
 
-    const parentData = await filter.extractRelatedParentMetas(context, ncMeta);
+    const parentData = await filter.extractRelatedParentMetas(ncMeta);
 
     this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
       filter: { ...filter, ...param.filter },
