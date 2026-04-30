@@ -1508,11 +1508,11 @@ async function resolveCrossTableDynamicFilter(
   baseModelSqlv2: IBaseModelSqlV2,
   aliasCount: { count: number },
 ): Promise<false | FilterOperationResult> {
-  const relatedModel = await valueColumn.getModel(context);
+  const relatedModel = await valueColumn.getModel();
   if (!relatedModel) {
     return false;
   }
-  await relatedModel.getColumns(context);
+  await relatedModel.getColumns();
 
   const relatedBaseModel = await Model.getBaseModelSQL(context, {
     model: relatedModel,
