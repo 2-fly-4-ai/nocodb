@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ButtonActionsType, EventType, ViewTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  ButtonActionsType,
+  EventType,
+  PlanFeatureTypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
   FormUpdateReqType,
   UserType,
@@ -15,6 +21,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { generateFormEditToken } from '~/helpers/formEditToken';
 import { ButtonColumn } from '~/models';
 import { FormView, Model, Source, User, View } from '~/models';
@@ -234,6 +241,8 @@ export class FormsService {
       rowId: string;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON);
+
     const buttonCol = await ButtonColumn.read(context, param.columnId);
 
     if (!buttonCol || buttonCol.type !== ButtonActionsType.OpenForm) {
