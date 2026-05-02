@@ -139,7 +139,7 @@ export function useCopyPaste({
   }
   actionManager: ActionManager
 }) {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
   const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
@@ -1466,6 +1466,7 @@ export function useCopyPaste({
                 const url = await actionManager.resolveFormEditUrl(columnObj.id!, rowPk)
                 if (url) {
                   await copy(url)
+                  $e('c:button:open-form:copy-url', { via: 'keyboard' })
                   message.toast(t('msg.info.copiedToClipboard'))
                   return
                 }
