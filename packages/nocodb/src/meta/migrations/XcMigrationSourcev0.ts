@@ -117,10 +117,10 @@ export default class XcMigrationSourcev0 {
       'nc_202604100000_audit_org_id',
       'nc_202604160000_docs_in_data',
       'nc_202604200002_trash_cleanup_due_at',
-      'nc_202604220000_button_open_form',
       'nc_202603180000_user_mfa',
       'nc_202604220000_uuid_readonly',
       'nc_202604270000_base_trash',
+      'nc_202604220000_button_open_form',
     ]);
   }
 
@@ -236,14 +236,14 @@ export default class XcMigrationSourcev0 {
         return nc_202604160000_docs_in_data;
       case 'nc_202604200002_trash_cleanup_due_at':
         return nc_202604200002_trash_cleanup_due_at;
-      case 'nc_202604220000_button_open_form':
-        return nc_202604220000_button_open_form;
       case 'nc_202603180000_user_mfa':
         return nc_202603180000_user_mfa;
       case 'nc_202604220000_uuid_readonly':
         return nc_202604220000_uuid_readonly;
       case 'nc_202604270000_base_trash':
         return nc_202604270000_base_trash;
+      case 'nc_202604220000_button_open_form':
+        return nc_202604220000_button_open_form;
     }
   }
 }
