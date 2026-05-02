@@ -224,5 +224,4 @@ export class FormsService {
     }
     return view;
   }
-
 }
