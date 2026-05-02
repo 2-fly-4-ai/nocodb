@@ -107,6 +107,13 @@ export type InternalPOSTResponseType = Promise<
     }
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }
+  | {
+      isShared: boolean;
+      token?: string;
+      viewUuid?: string;
+      viewId?: string;
+      rowId?: string;
+    }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

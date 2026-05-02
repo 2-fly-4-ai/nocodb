@@ -250,6 +250,7 @@ const permissionScopes = {
     // Webhooks
 
     'hookTrigger',
+    'formEditTokenGenerate',
 
     'userInvite',
 
@@ -493,6 +494,7 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
       hookTrigger: true,
+      formEditTokenGenerate: true,
 
       // AI
       aiUtils: true,
@@ -955,6 +957,7 @@ const permissionDescriptions: Record<string, string> = {
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+  formEditTokenGenerate: 'generate edit token for form view button',
 
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',
