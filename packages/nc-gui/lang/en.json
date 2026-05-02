@@ -2507,6 +2507,7 @@
     "selectBases": "Select bases"
   },
   "activity": {
+    "warning": "Warning",
     "useTemplate": "Use template",
     "clickToResolve": "Click to resolve",
     "resolvedBy": "Resolved by",
@@ -3330,6 +3331,7 @@
     "info": {
       "trashEmpty": "Trash is empty",
       "formNotSharedEditNote": "The selected form is not shared publicly. Share the form view before saving this button.",
+      "openFormShareWarning": "Anyone with the shared link can edit rows via the {forms} form through the publicly visible Open Form button fields.",
       "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "licensesUpToDate": "All licenses are up to date",
