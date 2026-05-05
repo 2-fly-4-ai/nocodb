@@ -98,7 +98,7 @@ const getAst = async (
   };
 
   let coverImageId;
-  let dependencyFieldsForCalenderView;
+  let dependencyFieldsForRangeView;
   let kanbanGroupColumnId;
   let sortColumnIds: string[] = [];
   let filterColumnIds: string[] = [];
@@ -114,7 +114,7 @@ const getAst = async (
     // coverImageId = calendar.fk_cover_image_col_id;
     const calenderRanges = await CalendarRange.read(context, view.id);
     if (calenderRanges) {
-      dependencyFieldsForCalenderView = calenderRanges.ranges
+      dependencyFieldsForRangeView = calenderRanges.ranges
         .flatMap((obj) =>
           [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )
@@ -127,7 +127,7 @@ const getAst = async (
     // and the frontend would treat every record as "without dates".
     const timelineRanges = await TimelineRange.read(context, view.id);
     if (timelineRanges) {
-      dependencyFieldsForCalenderView = timelineRanges.ranges
+      dependencyFieldsForRangeView = timelineRanges.ranges
         .flatMap((obj) =>
           [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )
@@ -193,14 +193,14 @@ const getAst = async (
 
   if (extractOnlyRangeFields) {
     const ast: Ast = {
-      ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
+      ...(dependencyFieldsForRangeView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
         return { ...o, [getFieldKey(col)]: 1 };
       }, {}),
     };
 
     await Promise.all(
-      (dependencyFieldsForCalenderView || []).map((f) =>
+      (dependencyFieldsForRangeView || []).map((f) =>
         extractDependencies(
           context,
           model.columns.find((c) => c.id === f),
@@ -245,8 +245,8 @@ const getAst = async (
     if (coverImageId) {
       allowedCols[coverImageId] = 1;
     }
-    if (dependencyFieldsForCalenderView) {
-      dependencyFieldsForCalenderView.forEach((id) => {
+    if (dependencyFieldsForRangeView) {
+      dependencyFieldsForRangeView.forEach((id) => {
         allowedCols[id] = 1;
       });
     }
@@ -404,7 +404,7 @@ const getAst = async (
         (!isSystemColumn(col) ||
           (!view && isCreatedOrLastModifiedTimeCol(col)) ||
           view.show_system_fields ||
-          (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
+          (dependencyFieldsForRangeView ?? []).includes(col.id) ||
           col.pv) &&
         (!fields?.length || isInFields) &&
         value;
