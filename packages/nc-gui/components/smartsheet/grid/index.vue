@@ -236,6 +236,13 @@ watch(
   },
 )
 
+watch(
+  [isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value],
+  () => {
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+  },
+)
+
 const addRowExpandOnClose = (row: Row) => {
   if (!skipRowRemovalOnCancel.value) {
     eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
