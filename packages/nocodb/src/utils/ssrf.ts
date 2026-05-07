@@ -22,11 +22,11 @@ export function getFilteredAgents({
   url: string;
   source?: OperationSource;
 }): FilteredAgents {
-  // Cloud always enforces SSRF protection — NC_ALLOW_LOCAL_NETWORK is ignored
+  // Cloud always enforces SSRF protection — NC_DISABLE_SSRF_PROTECTION is ignored
   if (isCloud) return buildAgents(url);
 
   // Global override — disables all SSRF protection for self-hosted
-  if (process.env.NC_ALLOW_LOCAL_NETWORK === 'true') return {};
+  if (process.env.NC_DISABLE_SSRF_PROTECTION === 'true') return {};
 
   // Granular overrides (existing env vars)
   if (
