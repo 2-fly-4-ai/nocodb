@@ -27,6 +27,8 @@ const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } 
 
 const expandedFormPanelStore = useExpandedFormPanel()
 
+const { mode: expandedFormMode } = useExpandedFormMode()
+
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore?.isOpen.value ?? false)
 
 const expandedFormPanelRowNavigator = expandedFormPanelStore?.rowNavigator ?? ref(null)
@@ -144,7 +146,7 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
-  if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
+  if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId) {
     expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId)
     updateRowIdRoute(rowId, path)
     return
@@ -173,7 +175,7 @@ defineExpose({
 const expandedFormOnRowIdDlg = computed({
   get() {
     if (isExpandedFormPanelOpen.value) return false
-    if (isEeUI && !isMobileMode.value && !isPublic.value) return false
+    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel') return false
     return !!routeQuery.value.rowId
   },
   set(val) {
@@ -218,7 +220,16 @@ onBeforeUnmount(() => {
 watch(
   [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
   ([rowId, columnsLen]) => {
-    if (!rowId || !columnsLen || !isEeUI || isMobileMode.value || isPublic.value || !expandedFormPanelStore || !meta.value?.id)
+    if (
+      !rowId ||
+      !columnsLen ||
+      !isEeUI ||
+      isMobileMode.value ||
+      isPublic.value ||
+      expandedFormMode.value !== 'panel' ||
+      !expandedFormPanelStore ||
+      !meta.value?.id
+    )
       return
     if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
 
