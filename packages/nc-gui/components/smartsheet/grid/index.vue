@@ -172,8 +172,22 @@ defineExpose({
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    // When panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
+    // EE desktop: open panel instead of modal
+    if (isEeUI && !isMobileMode.value && !isPublic.value && routeQuery.value.rowId && expandedFormPanelStore && meta.value?.id && !isSyncingPanelRoute.value) {
+      nextTick(() => {
+        const rowId = routeQuery.value.rowId
+        if (rowId && !isExpandedFormPanelOpen.value && !isSyncingPanelRoute.value) {
+          expandedFormPanelStore.openPanel(
+            { row: {}, oldRow: {}, rowMeta: {} } as Row,
+            undefined,
+            undefined,
+            rowId,
+          )
+        }
+      })
+      return false
+    }
     return !!routeQuery.value.rowId
   },
   set(val) {
