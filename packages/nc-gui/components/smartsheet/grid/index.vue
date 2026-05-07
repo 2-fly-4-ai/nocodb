@@ -145,7 +145,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
-    expandedFormPanelStore.openPanel(row, undefined, state)
+    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state)
     updateRowIdRoute(rowId, path)
     return
   }
@@ -195,6 +195,21 @@ watch(
   (newRowId) => {
     if (!newRowId && isExpandedFormPanelOpen.value) {
       expandedFormPanelStore.closePanel()
+    }
+  },
+)
+
+// Sync route when panel navigates to a different row
+watch(
+  () => expandedFormPanelStore?.activeRowId.value,
+  (newRowId) => {
+    if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
+      router.push({
+        query: {
+          ...routeQuery.value,
+          rowId: newRowId,
+        },
+      })
     }
   },
 )
