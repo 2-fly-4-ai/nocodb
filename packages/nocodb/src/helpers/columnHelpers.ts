@@ -3,6 +3,7 @@ import {
   AppEvents,
   getAvailableRollupForUiType,
   isMMOrMMLike,
+  OperationSource,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -793,9 +794,7 @@ export const TableSystemColumns = (isMetaColSupport = false, isMeta = true) => [
     : []),
 ];
 
-export enum OperationSource {
-  AT_IMPORT = 'at_import',
-}
+export { OperationSource };
 
 export const deleteColumnSystemPropsFromRequest = (
   col: any,

@@ -20,6 +20,7 @@ import type {
   ColumnType,
   NcApiVersion,
   NormalColumnRequestType,
+  OperationSource,
   TableReqType,
   TableType,
   UserType,
@@ -40,7 +41,6 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
-import type { OperationSource } from '~/helpers/columnHelpers';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';

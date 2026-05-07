@@ -2,9 +2,9 @@ import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { getCircularReplacer, ViewTypes } from 'nocodb-sdk';
+import { getCircularReplacer, OperationSource, ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
-import { useAgent } from 'request-filtering-agent';
+import { getFilteredAgents } from '~/utils/ssrf';
 import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
@@ -180,8 +180,7 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url),
-      httpsAgent: useAgent(apiMeta.url),
+      ...getFilteredAgents({ url: apiMeta.url, source: OperationSource.HOOKS }),
     };
     const data = await axios(_req);
     return data?.data;
@@ -197,6 +196,7 @@ export class UtilsService {
     } = param.body;
     const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
     const isCSVImport = /.*\.(csv)/;
+    // TODO: respect NC_ALLOW_LOCAL_NETWORK here
     const ipBlockList =
       /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
     if (
