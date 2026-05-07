@@ -1,8 +1,17 @@
 import { OperationSource } from 'nocodb-sdk';
-import { useAgent } from 'request-filtering-agent';
+import {
+  type RequestFilteringHttpAgent,
+  type RequestFilteringHttpsAgent,
+  useAgent,
+} from 'request-filtering-agent';
 import { isCloud } from '~/utils/constants';
 
-function buildAgents(url: string) {
+export type FilteredAgents = {
+  httpAgent?: RequestFilteringHttpAgent | RequestFilteringHttpsAgent;
+  httpsAgent?: RequestFilteringHttpAgent | RequestFilteringHttpsAgent;
+};
+
+function buildAgents(url: string): FilteredAgents {
   return { httpAgent: useAgent(url), httpsAgent: useAgent(url) };
 }
 
@@ -12,7 +21,7 @@ export function getFilteredAgents({
 }: {
   url: string;
   source?: OperationSource;
-}) {
+}): FilteredAgents {
   // Cloud always enforces SSRF protection — NC_ALLOW_LOCAL_NETWORK is ignored
   if (isCloud) return buildAgents(url);
 
