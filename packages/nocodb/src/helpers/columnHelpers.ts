@@ -828,7 +828,7 @@ export const deleteColumnSystemPropsFromRequest = (
         }
         break;
       }
-      {
+      default: {
         delete col.system;
       }
       break;
