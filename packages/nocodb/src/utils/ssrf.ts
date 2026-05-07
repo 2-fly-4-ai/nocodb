@@ -31,7 +31,8 @@ export function getFilteredAgents({
   // Granular overrides (existing env vars)
   if (
     source === OperationSource.HOOKS &&
-    process.env.NC_ALLOW_LOCAL_HOOKS === 'true'
+    (process.env.NC_ALLOW_LOCAL_HOOKS === 'true' ||
+      process.env.NC_WEBHOOK_ALLOW_PRIVATE_NETWORK === 'true')
   )
     return {};
 
