@@ -2853,7 +2853,8 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!",
+    "startCommenting": "Start a conversation",
+    "startCommentingDescription": "Discuss updates, ask questions, and collaborate with your team using rich text and @mentions.",
     "replyingTo": "Replying to {name}",
     "addReply": "Add a reply",
     "noCommentsYet": "No comments yet!",
