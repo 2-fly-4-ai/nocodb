@@ -19,9 +19,16 @@ const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+// --- Expanded form panel (right-side slide-in) ---
+const expandedFormPanelStore = useProvideExpandedFormPanel()
+
+const { isOpen: isExpandedFormPanelOpen, rowNavigator: expandedFormPanelRowNavigator } = expandedFormPanelStore
 
 const bulkUpdateDlg = ref(false)
 
@@ -119,6 +126,29 @@ const skipRowRemovalOnCancel = ref(false)
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+
+  // EE desktop: open the right-side panel instead of modal
+  if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
+    expandedFormPanelStore.openPanel(row, undefined, state)
+
+    // Update route for deep-linking
+    const routeParams = {
+      query: {
+        ...routeQuery.value,
+        rowId,
+        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+        expand: undefined,
+      },
+    }
+    if (routeQuery.value.expand) {
+      router.replace(routeParams)
+    } else {
+      router.push(routeParams)
+    }
+    return
+  }
+
+  // Fallback: existing modal behavior (CE, mobile, public, new rows)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
@@ -128,11 +158,9 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
         ...routeQuery.value,
         rowId,
         path: ncIsEmptyArray(path) ? undefined : path.join('-'),
-        // Remove expand from query to avoid triggering the expanded form on closing the dialog
         expand: undefined,
       },
     }
-    // if expand is true, replace the route to avoid adding a new history entry
     if (routeQuery.value.expand) {
       router.replace(routeParams)
     } else {
@@ -156,10 +184,16 @@ defineExpose({
 
 const expandedFormOnRowIdDlg = computed({
   get() {
+    // When panel is open, don't trigger the modal
+    if (isExpandedFormPanelOpen.value) return false
     return !!routeQuery.value.rowId
   },
   set(val) {
-    if (!val)
+    if (!val) {
+      // Close panel if it's open
+      if (isExpandedFormPanelOpen.value) {
+        expandedFormPanelStore.closePanel()
+      }
       router.push({
         query: {
           ...routeQuery.value,
@@ -167,8 +201,19 @@ const expandedFormOnRowIdDlg = computed({
           rowId: undefined,
         },
       })
+    }
   },
 })
+
+// Close panel when route rowId is cleared (e.g. browser back)
+watch(
+  () => routeQuery.value.rowId,
+  (newRowId) => {
+    if (!newRowId && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
 
 const addRowExpandOnClose = (row: Row) => {
   if (!skipRowRemovalOnCancel.value) {
@@ -221,6 +266,31 @@ const updateViewWidth = () => {
 }
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
+// Wire row navigator for the expanded form panel
+expandedFormPanelRowNavigator.value = {
+  getRow: (index: number) => {
+    if (isInfiniteScrollingEnabled.value) {
+      const row = cachedRows.value.get(index)
+      if (!row) return null
+      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+      if (!rowId) return null
+      return { rowId, row }
+    } else {
+      const row = pData.value[index]
+      if (!row) return null
+      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+      if (!rowId) return null
+      return { rowId, row }
+    }
+  },
+  totalRows: () => {
+    if (isInfiniteScrollingEnabled.value) {
+      return totalRows.value ?? 0
+    }
+    return pData.value.length
+  },
+}
 
 const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
 
@@ -372,10 +442,11 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full overflow-hidden nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
+    <div class="flex flex-col flex-1 min-w-0 h-full">
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"
       ref="tableRef"
@@ -534,6 +605,10 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :rows="selectedRows"
       />
     </Suspense>
+    </div>
+
+    <!-- Right-side expanded form panel -->
+    <SmartsheetGridExpandedFormPanel />
   </div>
 </template>
 
