@@ -3,6 +3,7 @@ import type {
   DependencyTableType,
   NcContext,
   NcRequest,
+  RowColoringInfo,
 } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -25,6 +26,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | RowColoringInfo
+  | null
   | DataReflection
   | Document
   | Document[]
