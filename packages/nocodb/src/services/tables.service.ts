@@ -495,7 +495,6 @@ export class TablesService {
           {
             req: param.req,
             columnId: c.id,
-            user,
             forceDeleteSystem: true,
             skipLinkPlaceholder: true,
             columnWebhookManager,
