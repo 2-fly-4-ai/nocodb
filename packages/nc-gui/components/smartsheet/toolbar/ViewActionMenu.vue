@@ -222,6 +222,13 @@ const onClickCopyViewConfig = () => {
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
+const isViewPermissionsVisible = ref(false)
+
+const onOpenViewPermissions = () => {
+  emits('closeModal')
+  isViewPermissionsVisible.value = true
+}
+
 const isFieldHeaderVisibilityOptionVisible = computed(() => {
   return (
     !props.inSidebar &&
@@ -812,6 +819,34 @@ defineOptions({
         </PaymentUpgradeBadgeProvider>
       </template>
 
+      <!-- View Permissions -->
+      <template v-if="isEeUI && showEEFeatures && isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_VIEW_PERMISSIONS">
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              data-testid="nc-view-permissions-btn"
+              @click="click(PlanFeatureTypes.FEATURE_VIEW_PERMISSIONS, () => onOpenViewPermissions())"
+            >
+              <div
+                v-e="['c:view:permissions', { sidebar: props.inSidebar }]"
+                class="w-full flex flex-row items-center gap-x-2"
+              >
+                <GeneralIcon icon="ncLock" class="opacity-80" />
+                <div>{{ $t('title.viewPermissions') }}</div>
+                <div class="flex-1 w-full" />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_VIEW_PERMISSIONS"
+                  show-as-lock
+                  :on-click-callback="() => emits('closeModal')"
+                />
+              </div>
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+      </template>
+
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
         <NcTooltip v-if="isDeleteDisabled" placement="right">
@@ -853,6 +888,14 @@ defineOptions({
       :source-id="currentSourceId"
     />
   </template>
+
+  <LazyDlgViewPermissions
+    v-if="view?.id"
+    v-model:visible="isViewPermissionsVisible"
+    :view-id="view.id"
+    :view-title="view.title"
+    :is-personal-view="view.lock_type === LockType.Personal"
+  />
 </template>
 
 <style lang="scss" scoped>
