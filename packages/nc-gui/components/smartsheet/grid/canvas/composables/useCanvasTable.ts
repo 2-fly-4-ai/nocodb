@@ -99,7 +99,6 @@ export function useCanvasTable({
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -131,14 +130,12 @@ export function useCanvasTable({
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   addEmptyRow: (
@@ -235,8 +232,6 @@ export function useCanvasTable({
   // Initialize loaders that need meta.base_id after meta is available
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
-  const { addUndo, defineViewScope } = useUndoRedo()
-  const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
@@ -1063,21 +1058,6 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
-  const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
-    if (!meta.value?.columns || !meta.value?.columnsById) return
-
-    meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
-      if (c.id !== columnId) return c
-
-      c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
-      return c
-    })
-
-    if (meta.value?.columnsById?.[columnId]) {
-      meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columnsById[columnId].meta), defaultViewColOrder: order }
-    }
-  }
-
   const {
     handleMouseMove: resizeMouseMove,
     handleMouseDown: startResize,
@@ -1138,7 +1118,6 @@ export function useCanvasTable({
       if (nextToViewCol === null && lastViewCol === null) return
 
       const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
-      const oldOrder = toBeReorderedViewCol.order
 
       toBeReorderedViewCol.order = newOrder
 
@@ -1157,33 +1136,7 @@ export function useCanvasTable({
         }
       }
 
-      addUndo({
-        undo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = oldOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        redo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = newOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
-      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
+      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     },
     isViewOperationsAllowed,
@@ -1318,7 +1271,7 @@ export function useCanvasTable({
       return
     }
 
-    await bulkUpdateRows(rows, props, undefined, false, path)
+    await bulkUpdateRows(rows, props, undefined, path)
   }
 
   const cachedCurrentRow = ref<Row>()

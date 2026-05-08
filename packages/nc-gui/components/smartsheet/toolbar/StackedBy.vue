@@ -22,8 +22,6 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(active
 
 const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
@@ -48,18 +46,6 @@ const groupingFieldColumnId = computed({
   get: () => kanbanMetaData.value.fk_grp_col_id,
   set: async (val) => {
     if (val) {
-      addUndo({
-        undo: {
-          fn: await updateGroupingField,
-          args: [kanbanMetaData.value.fk_grp_col_id],
-        },
-        redo: {
-          fn: await updateGroupingField,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateGroupingField(val)
     }
   },
@@ -84,18 +70,6 @@ const hideEmptyStack = computed({
   },
   set: async (val: boolean) => {
     isLoading.value = 'hideEmptyStack'
-
-    addUndo({
-      undo: {
-        fn: updateHideEmptyStack,
-        args: [hideEmptyStack.value],
-      },
-      redo: {
-        fn: updateHideEmptyStack,
-        args: [val],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
 
     await updateHideEmptyStack(val)
 
