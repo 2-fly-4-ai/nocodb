@@ -79,6 +79,7 @@ export enum JobTypes {
   DataImport = 'data-import',
   SandboxMerge = 'sandbox-merge',
   ManagedAppUpdate = 'managed-app-update',
+  OperationCleanup = 'operation-cleanup',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -95,6 +96,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
   JobTypes.BaseTrashCleanUp,
+  JobTypes.OperationCleanup,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,
