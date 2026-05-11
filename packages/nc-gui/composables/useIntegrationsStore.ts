@@ -318,7 +318,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         integration.title = integration.title.trim()
       }
 
-      const response = await api.integration.create(activeWorkspaceId.value, integration)
+      const response = await api.integration.create(integration)
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
