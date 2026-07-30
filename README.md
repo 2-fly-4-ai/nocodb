@@ -24,6 +24,9 @@ NocoDB is the fastest and easiest way to build databases online.
 
 ![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
 
+> **SERP fork:** start with [`AGENTS.md`](AGENTS.md) and [`docs/README.md`](docs/README.md) before
+> changing fork behavior. Feature branches are not default-branch or deployment authority.
+
 <div align="center">
 
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/languages/chinese.md)
