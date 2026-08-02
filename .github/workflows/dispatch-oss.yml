@@ -7,6 +7,9 @@ on:
 
 jobs:
   push:
+    # This dispatch is an upstream NocoDB integration hook. Fork pushes must not allocate a runner
+    # or attempt to dispatch into nocodb/nocohub with a fork-owned or missing secret.
+    if: ${{ github.repository == 'nocodb/nocodb' }}
     runs-on: ubicloud-standard-2
     steps:
     - uses: actions/github-script@v6

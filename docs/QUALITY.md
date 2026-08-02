@@ -10,3 +10,7 @@
 
 Use the repository's existing package-level commands for the affected surface. The harness check
 protects durable project structure; it does not replace NocoDB's domain checks.
+
+The inherited `Dispatch OSS` workflow is an upstream-only integration hook. On this fork its job
+is skipped before runner allocation, so fork pushes neither wait for the upstream Ubicloud runner
+nor attempt to dispatch into `nocodb/nocohub` with `OSS_DISPATCH`.
