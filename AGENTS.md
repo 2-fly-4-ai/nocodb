@@ -1,7 +1,7 @@
-# NocoDB Fork Agent Map
+# NocoDB D1 Fork Agent Map
 
-This is SERP's NocoDB fork. The default branch follows upstream NocoDB; Cloudflare D1 external
-source work currently lives on `codex/cloudflare-d1-support` and is not default-branch behavior.
+This fork adds Cloudflare D1 as an external NocoDB data source. It does not make D1 the NocoDB
+metadata database and does not emulate unsupported interactive transactions.
 
 Read these first:
 
@@ -11,7 +11,8 @@ Read these first:
 4. `docs/SOURCE_OF_TRUTH.md`
 5. `docs/SAFETY.md`
 6. `docs/QUALITY.md`
-7. `docs/plans/README.md`
+7. `markdown/d1-transaction-audit.md`
+8. `docs/plans/README.md`
 
 Important areas:
 
@@ -21,14 +22,21 @@ Important areas:
 - `tests/`: integration and end-to-end coverage.
 - `markdown/`: upstream and feature-specific design/audit documents.
 
+Key code:
+
+- D1 transport: `packages/nocodb/src/db/sql-client/lib/d1/`
+- Source/integration services: `packages/nocodb/src/services/`
+- SDK source types: `packages/nocodb-sdk/`
+- Data-source UI: `packages/nc-gui/`
+
 Golden rules:
 
-1. Preserve upstream behavior for existing sources and keep fork divergence reviewable.
-2. Do not describe feature-branch code as merged or deployed.
-3. A D1 adapter may support atomic precompiled batches without supporting long-lived interactive
-   transactions; never represent best-effort multi-step writes as atomic.
-4. Do not run remote D1, database, schema, migration, deploy, credential, or customer-data
-   operations without explicit approval.
-5. Never print or commit account tokens, credentials, customer rows, exports, or env values.
-6. Add targeted adapter/service tests for data-source behavior changes.
+1. D1 external-source capability must remain explicit: atomic precompiled batches are supported;
+   long-lived interactive transactions are not.
+2. Do not represent best-effort multi-step writes as atomic.
+3. Preserve upstream NocoDB behavior for non-D1 sources.
+4. Do not run remote D1, production database, schema, deploy, or credential operations without
+   explicit approval.
+5. Never print or commit account tokens, database credentials, customer rows, or env values.
+6. Add targeted adapter/service tests with every D1 behavior change.
 7. New plans use `docs/plans/active/YYYY-MM-DD-<slug>.md`.

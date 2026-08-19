@@ -355,7 +355,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 validateFormula,
                 aliasToColumnBuilder,
               );
-              switch (baseModel.dbDriver.client.config.client) {
+              switch (baseModel.dbDriver.clientType()) {
                 case 'mysql2':
                   qb.select(
                     baseModel.dbDriver.raw(
@@ -383,6 +383,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   );
                   break;
                 case 'sqlite3':
+                case 'd1':
                   qb.select(
                     baseModel.dbDriver.raw(
                       `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
@@ -409,7 +410,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 colOption.type === ButtonActionsType.Webhook
                   ? 'fk_webhook_id'
                   : 'fk_script_id';
-              switch (baseModel.dbDriver.client.config.client) {
+              switch (baseModel.dbDriver.clientType()) {
                 case 'mysql2':
                   qb.select(
                     baseModel.dbDriver.raw(
@@ -437,6 +438,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   );
                   break;
                 case 'sqlite3':
+                case 'd1':
                   qb.select(
                     baseModel.dbDriver.raw(
                       `json_object('type', ?, 'label', ?, '${key}', ?) as ??`,

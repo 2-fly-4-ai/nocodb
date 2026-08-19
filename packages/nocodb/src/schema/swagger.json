@@ -16588,6 +16588,7 @@
                       "pg",
                       "snowflake",
                       "sqlite3",
+                      "d1",
                       "databricks"
                     ],
                     "example": "mysql2",
@@ -16606,6 +16607,15 @@
                         "type": "string"
                       },
                       "password": {
+                        "type": "string"
+                      },
+                      "accountId": {
+                        "type": "string"
+                      },
+                      "databaseId": {
+                        "type": "string"
+                      },
+                      "apiToken": {
                         "type": "string"
                       },
                       "database": {
@@ -16706,6 +16716,7 @@
                         "pg",
                         "snowflake",
                         "sqlite3",
+                        "d1",
                         "databricks"
                       ],
                       "example": "mysql2",
@@ -16722,6 +16733,18 @@
                         "password": {
                           "type": "string",
                           "description": "DB Password"
+                        },
+                        "accountId": {
+                          "type": "string",
+                          "description": "Cloudflare account ID"
+                        },
+                        "databaseId": {
+                          "type": "string",
+                          "description": "Cloudflare D1 database ID"
+                        },
+                        "apiToken": {
+                          "type": "string",
+                          "description": "Cloudflare API token"
                         },
                         "database": {
                           "type": "string",
@@ -21936,6 +21959,7 @@
               "pg",
               "snowflake",
               "sqlite3",
+              "d1",
               "databricks"
             ],
             "example": "mysql2",
@@ -22175,6 +22199,7 @@
               "pg",
               "snowflake",
               "sqlite3",
+              "d1",
               "databricks"
             ],
             "type": "string"

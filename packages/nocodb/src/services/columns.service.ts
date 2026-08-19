@@ -84,6 +84,7 @@ import {
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 import { extractProps } from '~/helpers/extractProps';
 import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
@@ -1389,7 +1390,7 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3'];
+        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'd1'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -1543,7 +1544,7 @@ export class ColumnsService implements IColumnsService {
               column.column_name,
               column.column_name,
             ]);
-          } else if (driverType === 'sqlite3') {
+          } else if (isSqliteLikeClient(driverType)) {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
@@ -1664,7 +1665,7 @@ export class ColumnsService implements IColumnsService {
           }
 
           // handle single quote for default value
-          if (driverType === 'pg' || driverType === 'sqlite3') {
+          if (driverType === 'pg' || isSqliteLikeClient(driverType)) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
             colBody.cdf = colBody.cdf.replace(/'/g, "''");
@@ -1779,7 +1780,7 @@ export class ColumnsService implements IColumnsService {
                 column_name: column.column_name,
               },
             );
-          } else if (driverType === 'sqlite3') {
+          } else if (isSqliteLikeClient(driverType)) {
             await sqlClient.raw(
               `
               UPDATE :table_name:
@@ -1871,7 +1872,7 @@ export class ColumnsService implements IColumnsService {
                     option.title,
                   ],
                 );
-              } else if (driverType === 'sqlite3') {
+              } else if (isSqliteLikeClient(driverType)) {
                 await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                   [
@@ -2064,7 +2065,7 @@ export class ColumnsService implements IColumnsService {
                     newOp.title,
                   ],
                 );
-              } else if (driverType === 'sqlite3') {
+              } else if (isSqliteLikeClient(driverType)) {
                 await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                   [
@@ -2146,7 +2147,7 @@ export class ColumnsService implements IColumnsService {
                   newOp.title,
                 ],
               );
-            } else if (driverType === 'sqlite3') {
+            } else if (isSqliteLikeClient(driverType)) {
               await sqlClient.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
@@ -2510,7 +2511,7 @@ export class ColumnsService implements IColumnsService {
               column.column_name,
               column.column_name,
             ]);
-          } else if (driverType === 'sqlite3') {
+          } else if (isSqliteLikeClient(driverType)) {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
@@ -2603,7 +2604,7 @@ export class ColumnsService implements IColumnsService {
             trimColumn = `TRIM(BOTH ' ' FROM ??)`;
           } else if (driverType === 'pg') {
             trimColumn = `BTRIM(??)`;
-          } else if (driverType === 'sqlite3') {
+          } else if (isSqliteLikeClient(driverType)) {
             trimColumn = `TRIM(??)`;
           }
 
@@ -3541,7 +3542,7 @@ export class ColumnsService implements IColumnsService {
 
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
-              if (source.type === 'sqlite3') {
+              if (isSqliteLikeClient(source.type)) {
                 colBody.cdf = null;
               }
 
@@ -3716,7 +3717,7 @@ export class ColumnsService implements IColumnsService {
               }
 
               // handle single quote for default value
-              if (driverType === 'pg' || driverType === 'sqlite3') {
+              if (driverType === 'pg' || isSqliteLikeClient(driverType)) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
                 colBody.cdf = colBody.cdf.replace(/'/g, "''");

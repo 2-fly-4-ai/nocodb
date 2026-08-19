@@ -1,32 +1,38 @@
 # SERP NocoDB Fork Architecture
 
-Last reviewed from `develop`: 2026-07-30
+Last reviewed from `develop`: 2026-08-19
 
 ## Current Default Branch
 
-The fork's default branch is an upstream-shaped NocoDB application. It contains the normal backend,
-SDK, GUI, data-source integrations, and test surfaces. SERP's Cloudflare D1 external-source adapter
-is currently isolated on `codex/cloudflare-d1-support`.
+The fork's default branch is an upstream-shaped NocoDB application with Cloudflare D1 added as a
+first-class external source. It contains the normal backend, SDK, GUI, data-source integrations, and
+test surfaces.
 
 ```text
-NocoDB GUI
-    |
-    v
-source/integration services
-    |
-    +--> existing upstream SQL and external sources
-    |
-    +--> D1 REST adapter (feature branch only)
+NocoDB data-source UI
+        |
+        v
+integration/source services
+        |
+        +--> existing upstream SQL and external sources
+        |
+        v
+D1 Knex adapter ----Cloudflare REST API----> external D1 database
 ```
 
 ## D1 Capability Boundary
 
-The feature branch adds D1 as an external data source; it does not make D1 the NocoDB metadata
-database. Cloudflare's batch interface can make a known, precompiled statement set atomic. It does
-not provide a long-lived interactive transaction for read-decide-write workflows.
+The D1 adapter validates Cloudflare account/database configuration, translates SQLite-compatible
+queries, and executes SQL through the Cloudflare D1 REST endpoint. It can atomically execute a batch
+only when all statements and bindings are known before the request.
 
-Any eventual merge must keep that boundary explicit in adapter capabilities, services, UI, docs,
-and tests. Unsupported transactions must fail clearly or be documented as best effort.
+D1 support is external-source only; it does not make D1 the NocoDB metadata database. Cloudflare's
+batch interface can make a known, precompiled statement set atomic. It does not provide a long-lived
+interactive transaction for read-decide-write workflows.
+
+That boundary must stay explicit in adapter capabilities, services, UI, docs, and tests.
+Unsupported transactions must fail clearly or be documented as best effort.
+`markdown/d1-transaction-audit.md` is the transaction capability authority.
 
 ## Ownership
 
@@ -38,7 +44,6 @@ and tests. Unsupported transactions must fail clearly or be documented as best e
 
 ## Known Gaps
 
-- Rebase the D1 branch onto the current fork default and resolve upstream drift.
 - Review all D1 write paths for atomicity and truthful capability reporting.
 - Complete targeted adapter, service, and GUI coverage.
-- Decide whether the feature is ready for a separate default-branch merge PR.
+- Continue auditing schema/DDL and dependent write workflows case by case.
